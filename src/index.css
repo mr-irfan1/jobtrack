@@ -1,0 +1,131 @@
+@import "tailwindcss";
+
+/*
+ * Theme system — single source of truth for JobTrack's Light + Dark modes.
+ *
+ * Design tokens are CSS custom properties: `:root` (and an explicit
+ * [data-theme="light"]) holds the Light set; [data-theme="dark"] overrides it.
+ * The `@theme inline` block maps each token to a Tailwind color utility, so
+ * `bg-surface`, `text-foreground`, `border-border`, `bg-primary/10`,
+ * `text-danger-fg`, etc. all resolve to the live variable and flip
+ * automatically when the `data-theme` attribute on <html> changes. Components
+ * reference these semantic utilities, never hard-coded palette colors — the
+ * one exception is the status pills, which keep their hues and use the
+ * registered `dark:` variant below for a dark-mode-appropriate soft treatment.
+ *
+ * The default Tailwind palette (slate/blue/amber/emerald/red) is intentionally
+ * NOT cleared, so status dots/pills can still use it.
+ */
+
+/* Make `dark:` a data-attribute variant instead of prefers-color-scheme, so it
+   keys off the same <html data-theme="dark"> the ThemeProvider controls. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+:root,
+[data-theme="light"] {
+  --background: #f4f5f7;
+  --foreground: #0f172a;
+  --muted-foreground: #64748b;
+  --surface: #ffffff;
+  --surface-elevated: #ffffff;
+  --muted: #eef1f4;
+  --border: #e3e7ec;
+  --input: #ffffff;
+  --primary: #2563eb;
+  --primary-foreground: #ffffff;
+  --ring: #2563eb;
+  --success: #059669;
+  --success-fg: #047857;
+  --warning: #d97706;
+  --warning-fg: #b45309;
+  --danger: #dc2626;
+  --danger-fg: #b91c1c;
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --background: #0b0c0e;
+  --foreground: #f3f5f7;
+  --muted-foreground: #9aa4b2;
+  --surface: #151719;
+  --surface-elevated: #1c1f22;
+  --muted: #22262b;
+  --border: #2a2f35;
+  --input: #1a1a1a;
+  --primary: #3b82f6;
+  --primary-foreground: #ffffff;
+  --ring: #3b82f6;
+  --success: #10b981;
+  --success-fg: #6ee7b7;
+  --warning: #f59e0b;
+  --warning-fg: #fcd34d;
+  --danger: #ef4444;
+  --danger-fg: #fca5a5;
+  color-scheme: dark;
+}
+
+/* Map tokens to Tailwind color utilities. `inline` keeps the utility pointing
+   at the live var() (rather than baking a value), so utilities — including
+   opacity modifiers like bg-primary/10 via color-mix — track the theme flip. */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-ring: var(--ring);
+  --color-success: var(--success);
+  --color-success-fg: var(--success-fg);
+  --color-warning: var(--warning);
+  --color-warning-fg: var(--warning-fg);
+  --color-danger: var(--danger);
+  --color-danger-fg: var(--danger-fg);
+}
+
+/*
+ * Minimal base layer for the full-viewport app shell. The shell (AppLayout)
+ * sizes itself to the dynamic viewport height, so #root must fill its host;
+ * antialiasing gives the SaaS UI crisper type. The page background/foreground
+ * come from the active theme so the area behind the app (overscroll, short
+ * pages) always matches.
+ */
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /*
+   * Theme-flip easing: when the user toggles light/dark, cross-fade the
+   * color-ish longhands (~200ms) so surfaces don't snap. Longhands (not the
+   * `transition` shorthand) and placed in the base layer, so any element that
+   * sets its own transition-* utility (a later cascade layer) keeps full
+   * control of its own animation. Gated behind prefers-reduced-motion; no
+   * @keyframes. Because data-theme is applied before first paint, nothing
+   * animates on initial load — only on a subsequent toggle.
+   */
+  @media (prefers-reduced-motion: no-preference) {
+    *,
+    ::before,
+    ::after {
+      transition-property:
+        background-color, border-color, color, fill, stroke, box-shadow,
+        outline-color;
+      transition-duration: 200ms;
+      transition-timing-function: ease;
+    }
+  }
+}

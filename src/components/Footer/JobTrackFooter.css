@@ -1,0 +1,538 @@
+/*
+ * JobTrack footer — component-local styles.
+ *
+ * Every class is prefixed `jobtrack-footer-*`, so these rules never collide with
+ * the app's Tailwind utility classes and stay effectively scoped to this
+ * component. The DM Sans / Caveat families are applied only inside the footer —
+ * never on a global selector — so the rest of the app keeps its system stack.
+ * Box-sizing + resets come from Tailwind's preflight (loaded globally); nothing
+ * global is redefined here.
+ *
+ * Theme: the LEFT brand card and the floating cube badge are an intentional
+ * blue brand panel (like a hero) and keep their fixed white-on-blue palette in
+ * both themes. Everything on the RIGHT card is routed through the app's theme
+ * tokens (var(--surface/muted/foreground/border/primary/...)), so it follows
+ * Light/Dark like the rest of the app. Soft status fills use color-mix() on the
+ * solid token.
+ *
+ * Motion: hover/focus transitions only. No @keyframes anywhere.
+ */
+
+.jobtrack-footer-section {
+  font-family: 'DM Sans', sans-serif;
+  position: relative;
+  padding: 56px 24px 28px;
+}
+
+.jobtrack-footer-wrapper {
+  max-width: 1150px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: 16px;
+  align-items: stretch;
+  position: relative;
+  z-index: 1;
+}
+
+/* ============================================================
+   LEFT CARD — BRAND (fixed brand palette; unchanged by theme)
+   ============================================================ */
+.jobtrack-footer-left {
+  position: relative;
+  min-height: 340px;
+  border-radius: 28px;
+  padding: 32px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #1e40af 0%, #2563eb 55%, #1d4ed8 100%);
+  box-shadow: 0 12px 40px rgba(37, 99, 235, 0.25);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* Subtle abstract shapes — static, no glow, no animation. */
+.jobtrack-footer-left::before {
+  content: '';
+  position: absolute;
+  width: 340px;
+  height: 340px;
+  top: -130px;
+  right: -90px;
+  background: radial-gradient(
+    circle at center,
+    rgba(255, 255, 255, 0.2),
+    rgba(255, 255, 255, 0) 68%
+  );
+  border-radius: 50%;
+}
+
+.jobtrack-footer-left::after {
+  content: '';
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  bottom: -120px;
+  left: -80px;
+  background: radial-gradient(
+    circle at center,
+    rgba(10, 22, 60, 0.32),
+    rgba(10, 22, 60, 0) 70%
+  );
+  border-radius: 50%;
+}
+
+.jobtrack-footer-left > * {
+  position: relative;
+  z-index: 1;
+}
+
+.jobtrack-footer-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.jobtrack-footer-logo-mark {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1.5px solid rgba(255, 255, 255, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.jobtrack-footer-logo-mark svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
+.jobtrack-footer-logo-name {
+  font-size: 22px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+}
+
+.jobtrack-footer-tagline-container {
+  margin-top: auto;
+  margin-bottom: 28px;
+}
+
+.jobtrack-footer-tagline {
+  font-size: 19px;
+  font-weight: 400;
+  line-height: 1.45;
+  color: #ffffff;
+}
+
+.jobtrack-footer-tagline-sub {
+  display: block;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.jobtrack-footer-social-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.jobtrack-footer-social-label {
+  font-family: 'Caveat', cursive;
+  font-size: 17px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.jobtrack-footer-social-icons {
+  display: flex;
+  gap: 7px;
+}
+
+.jobtrack-footer-social-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background: #0e1014;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  box-shadow:
+    0 6px 18px rgba(0, 0, 0, 0.35),
+    0 2px 6px rgba(0, 0, 0, 0.2);
+  transition:
+    background 0.2s,
+    transform 0.15s,
+    box-shadow 0.2s;
+}
+
+.jobtrack-footer-social-btn svg {
+  width: 15px;
+  height: 15px;
+  display: block;
+}
+
+.jobtrack-footer-social-btn:hover {
+  background: #000000;
+  transform: translateY(-2px);
+  box-shadow:
+    0 10px 24px rgba(0, 0, 0, 0.4),
+    0 3px 8px rgba(0, 0, 0, 0.28);
+}
+
+.jobtrack-footer-social-btn:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+/* ============================================================
+   RIGHT CARD (theme-driven)
+   ============================================================ */
+.jobtrack-footer-right {
+  background: var(--muted);
+  border-radius: 28px;
+  padding: 40px;
+  overflow: visible;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+}
+
+/* Floating decorative badge (fixed brand palette; unchanged by theme) */
+.jobtrack-footer-career-graphic {
+  position: absolute;
+  top: -36px;
+  right: 40px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.jobtrack-footer-cube {
+  width: 96px;
+  height: 96px;
+  border-radius: 22px;
+  transform: rotate(-10deg);
+  background: linear-gradient(135deg, #60a5fa 0%, #2563eb 55%, #1d4ed8 100%);
+  box-shadow:
+    inset 3px 3px 8px rgba(255, 255, 255, 0.35),
+    inset -3px -3px 12px rgba(0, 0, 0, 0.18),
+    8px 14px 28px rgba(37, 99, 235, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.jobtrack-footer-cube-mark {
+  font-size: 42px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+  transform: rotate(10deg);
+  text-shadow: 0 3px 6px rgba(0, 0, 0, 0.25);
+}
+
+.jobtrack-footer-cube-text-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  transform: rotate(-4deg);
+  margin-top: 4px;
+}
+
+.jobtrack-footer-cube-text-row svg {
+  display: block;
+  flex: none;
+}
+
+.jobtrack-footer-cube-text {
+  font-family: 'Caveat', cursive;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+}
+
+/* Navigation */
+.jobtrack-footer-right-top {
+  position: relative;
+  z-index: 1;
+}
+
+.jobtrack-footer-nav-cols {
+  display: flex;
+  gap: 72px;
+  padding-top: 8px;
+}
+
+.jobtrack-footer-nav-title {
+  font-family: 'Caveat', cursive;
+  font-size: 24px;
+  font-weight: 600;
+  font-style: italic;
+  color: var(--muted-foreground);
+  margin-bottom: 18px;
+}
+
+.jobtrack-footer-nav-link {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--foreground);
+  margin-bottom: 14px;
+  text-decoration: none;
+  width: fit-content;
+  border-radius: 4px;
+  transition: color 0.2s;
+}
+
+.jobtrack-footer-nav-link:last-child {
+  margin-bottom: 0;
+}
+
+.jobtrack-footer-nav-link:hover {
+  color: var(--primary);
+}
+
+.jobtrack-footer-nav-link:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+
+/* Bottom area */
+.jobtrack-footer-bottom {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 32px;
+  margin-top: 48px;
+}
+
+.jobtrack-footer-copyright {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+
+.jobtrack-footer-cta-mini {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.jobtrack-footer-cta-text {
+  font-size: 15px;
+  color: var(--muted-foreground);
+  line-height: 1.45;
+}
+
+.jobtrack-footer-cta-strong {
+  display: block;
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+/* Email subscribe */
+.jobtrack-footer-subscribe-row {
+  display: flex;
+  width: 310px;
+  max-width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 5px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+
+.jobtrack-footer-subscribe-row:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 15%, transparent);
+}
+
+.jobtrack-footer-subscribe-row.is-invalid {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger) 15%, transparent);
+}
+
+.jobtrack-footer-subscribe-input {
+  flex: 1;
+  min-width: 0;
+  padding: 11px 14px;
+  background: transparent;
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13.5px;
+  color: var(--foreground);
+}
+
+.jobtrack-footer-subscribe-input::placeholder {
+  color: var(--muted-foreground);
+}
+
+.jobtrack-footer-subscribe-input:focus {
+  outline: none;
+}
+
+.jobtrack-footer-subscribe-btn {
+  flex: none;
+  padding: 11px 18px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13.5px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow:
+    0 6px 20px rgba(0, 0, 0, 0.28),
+    0 2px 8px rgba(0, 0, 0, 0.15);
+  transition:
+    background 0.2s,
+    box-shadow 0.2s,
+    transform 0.15s;
+}
+
+.jobtrack-footer-subscribe-btn:hover {
+  background: color-mix(in srgb, var(--primary) 88%, #000);
+  transform: translateY(-1px);
+  box-shadow:
+    0 10px 26px rgba(0, 0, 0, 0.32),
+    0 3px 10px rgba(0, 0, 0, 0.2);
+}
+
+.jobtrack-footer-subscribe-btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Success pill shown in place of the form after a valid submit. */
+.jobtrack-footer-subscribe-success {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: 310px;
+  max-width: 100%;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--success) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--success) 30%, transparent);
+  color: var(--success-fg);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.jobtrack-footer-subscribe-success svg {
+  display: block;
+  flex: none;
+}
+
+.jobtrack-footer-subscribe-msg {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--danger-fg);
+  margin-top: 2px;
+}
+
+.jobtrack-footer-subscribe-msg:empty {
+  display: none;
+}
+
+/* ============================================================
+   WATERMARK
+   ============================================================ */
+.jobtrack-footer-watermark {
+  max-width: 1150px;
+  margin: -60px auto 0;
+  pointer-events: none;
+  user-select: none;
+  position: relative;
+  z-index: 0;
+  line-height: 0;
+}
+
+.jobtrack-footer-watermark svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.jobtrack-footer-watermark text {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  fill: color-mix(in srgb, var(--foreground) 5%, transparent);
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 860px) {
+  .jobtrack-footer-wrapper {
+    grid-template-columns: 1fr;
+  }
+
+  .jobtrack-footer-left {
+    min-height: auto;
+    gap: 40px;
+  }
+}
+
+@media (max-width: 560px) {
+  .jobtrack-footer-section {
+    padding: 44px 16px 20px;
+  }
+
+  .jobtrack-footer-right {
+    padding: 24px;
+  }
+
+  .jobtrack-footer-nav-cols {
+    gap: 40px;
+  }
+
+  .jobtrack-footer-bottom {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 24px;
+  }
+
+  .jobtrack-footer-subscribe-row,
+  .jobtrack-footer-subscribe-success {
+    width: 100%;
+  }
+
+  .jobtrack-footer-career-graphic {
+    right: 12px;
+    top: -28px;
+  }
+
+  .jobtrack-footer-cube {
+    width: 72px;
+    height: 72px;
+    border-radius: 18px;
+  }
+
+  .jobtrack-footer-cube-mark {
+    font-size: 32px;
+  }
+
+  .jobtrack-footer-cube-text {
+    font-size: 18px;
+  }
+}
