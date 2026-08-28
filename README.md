@@ -36,6 +36,10 @@
 - [Environment Setup & Configuration](#-environment-setup--configuration)
 - [Local Development & Available Scripts](#-local-development--available-scripts)
 - [Testing & Quality Assurance](#-testing--quality-assurance)
+- [🧠 Build Prompts](#-build-prompts)
+- [🤖 How AI Assisted](#-how-ai-assisted)
+- [🛠️ Manual Improvements & Corrections](#%EF%B8%8F-manual-improvements--corrections)
+- [🔍 Verification](#-verification)
 - [License](#-license)
 
 ---
@@ -297,12 +301,356 @@ npm run lint
 
 ---
 
+## 🧠 Build Prompts
+
+> **Note:** The prompts below are reconstructed from the implemented work, project structure, and development history where the original prompt text was not preserved.
+
+AI coding assistants were used throughout development for planning, architecture, component creation, refactoring, UI/UX polish, unit testing, SEO optimization, and documentation.
+
+### Prompt 01 — Project Foundation
+**Goal:** Establish initial application architecture using React 19, Vite 8, TypeScript, and Tailwind CSS v4.  
+**Prompt:**
+> "Build a modern job application tracking web application called JobTrack. Use React, Vite, TypeScript and Tailwind CSS. Establish a clean and scalable project structure. Create the foundation for authentication, dashboard, applications, reusable components and responsive layouts."
+
+**AI assistance:**
+- Scaffolded modular directory tree (`components/`, `pages/`, `services/`, `types/`, `utils/`).
+- Configured Vite and Tailwind CSS build setup.
+
+**Manual improvements:**
+- Verified TypeScript configuration in `tsconfig.json` and strict type checks.
+- Verified local dev server initialization (`npm run dev`).
+
+---
+
+### Prompt 02 — Initial Dashboard & Application Structure
+**Goal:** Build main dashboard layout with key statistics cards and recent application overview.  
+**Prompt:**
+> "Build the JobTrack dashboard using the existing design system. Provide a clear overview of application statistics, pipeline information, recent applications, and upcoming interviews. Ensure responsiveness across desktop, tablet and mobile."
+
+**AI assistance:**
+- Designed overview stat cards (`Total Applications`, `Active`, `Interviews`, `Offers`).
+- Created dashboard panels and grid layouts.
+
+**Manual improvements:**
+- Connected dashboard directly to persistent storage API (`applicationService.ts`).
+- Adjusted responsive column grid breakpoints for mobile screens.
+
+---
+
+### Prompt 03 — Authentication & Route Protection
+**Goal:** Implement Supabase Auth integration, session management, protected routes, and auth redirects.  
+**Prompt:**
+> "Implement authentication for JobTrack using Supabase Auth. Support Sign Up, Login, Logout, Forgot Password, Reset Password, and Email Verification. Protect authenticated application routes using a central AuthContext and RequireAuth gatekeeper."
+
+**AI assistance:**
+- Created Auth Context (`useAuth`), Supabase service wrappers (`authService.ts`), and route gatekeepers.
+- Implemented authentication page views (`LoginView`, `SignupView`, `ForgotPasswordView`, etc.).
+
+**Manual improvements:**
+- Added robust password validation rules and friendly error message mappers.
+- Prevented unauthenticated loading state flashes during startup.
+
+---
+
+### Prompt 04 — Job Application Management (CRUD)
+**Goal:** Implement job application creation, editing, deletion, multi-field search, and status filtering.  
+**Prompt:**
+> "Implement the Applications section for JobTrack. Users should be able to view, add, edit, delete, search, and filter job applications by status. Reuse existing database schema and status definitions."
+
+**AI assistance:**
+- Created `ApplicationsView`, `ApplicationsToolbar`, and modal form dialogs.
+- Implemented real-time string search filtering company name, job title, and location.
+
+**Manual improvements:**
+- Wrote explicit camelCase ↔ snake_case conversion helpers (`rowToApplication`, `applicationToInsertRow`).
+- Implemented delete confirmation modals to prevent accidental deletion.
+
+---
+
+### Prompt 05 — Dashboard Navigation Improvements
+**Goal:** Add responsive navigation tabs for Dashboard, Applications, Pipeline, Interviews, and Notifications.  
+**Prompt:**
+> "Add navigation tabs to the existing JobTrack dashboard (Dashboard, Applications, Application Pipeline, Interviews, Notifications). Make the navigation fully responsive and consistent with the existing JobTrack design system."
+
+**AI assistance:**
+- Updated `Sidebar.tsx` and mobile navigation drawers.
+- Added active route highlighting.
+
+**Manual improvements:**
+- Ensured active route matching works for nested routes like `/applications/:id`.
+- Tested mobile sidebar backdrop blur and touch dismiss.
+
+---
+
+### Prompt 06 — Applications Tab & Details Page
+**Goal:** Implement individual Application Details view (`/applications/:id`) with company overview, notes, and activity timeline.  
+**Prompt:**
+> "Add a detailed view for individual job applications at /applications/:id. Show application overview, job title, company, salary, location, job description, recruiter contacts, and an interactive activity timeline."
+
+**AI assistance:**
+- Created `ApplicationDetailsView.tsx` with activity log entries.
+- Connected route parameter `:id` to application lookup service.
+
+**Manual improvements:**
+- Handled missing optional fields gracefully with fallbacks.
+- Connected application links from Kanban board and Dashboard cards.
+
+---
+
+### Prompt 07 — Application Pipeline (Kanban Board)
+**Goal:** Transform Application Pipeline into a 6-stage Kanban board with stage counters.  
+**Prompt:**
+> "Transform the Application Pipeline section into a responsive Kanban board. Use the existing statuses (Saved, Applied, Screening, Interview, Offer, Rejected). Display applications in their corresponding columns with stage counters."
+
+**AI assistance:**
+- Created `ApplicationPipelineView.tsx` with 6 horizontal columns.
+- Calculated stage counts and total active pipeline volume.
+
+**Manual improvements:**
+- Added custom `.no-scrollbar` styling rules in `index.css` to hide WebKit scrollbars while preserving trackpad scrolling.
+- Ensured column mapping handles empty statuses cleanly.
+
+---
+
+### Prompt 08 — Interviews & Calendar
+**Goal:** Build a responsive calendar interface under `/interviews` for tracking scheduled interviews.  
+**Prompt:**
+> "Add a fully responsive calendar interface to the Interviews tab. Allow users to view scheduled interviews by date, format (Technical, HR, Behavioral), time, and interviewer notes."
+
+**AI assistance:**
+- Built `InterviewsView.tsx` with monthly date cell grid and event breakdown lists.
+- Added format tag badges and interview time display.
+
+**Manual improvements:**
+- Added date parsing helpers to handle browser timezone offsets cleanly.
+- Added empty states for days with no scheduled interviews.
+
+---
+
+### Prompt 09 — Notifications System
+**Goal:** Build notification workspace with category filters and unread state management.  
+**Prompt:**
+> "Implement the Notifications tab using the existing notification system. Support category filters (All, Unread, Applications, Interviews), real-time unread badges, and Mark All As Read controls."
+
+**AI assistance:**
+- Built `NotificationsView.tsx`, unread counter badges, and store utilities.
+- Added filter category tabs (`All`, `Unread`, `Applications`, `Interviews`).
+
+**Manual improvements:**
+- Persisted read notification IDs in localStorage so read states survive page refreshes.
+- Synchronized unread badges across header and sidebar.
+
+---
+
+### Prompt 10 — User Account & Profile Settings Foundation
+**Goal:** Create Account Settings area (`/settings`) with navigation rail and profile editor.  
+**Prompt:**
+> "Create a professional Account Settings area at /settings. Organize navigation tabs for Profile, Skills, Achievements, Social Links, Preferences, and Security. Implement the Profile section with avatar initials and bio editor."
+
+**AI assistance:**
+- Created `SettingsView.tsx` layout shell and `ProfileSettingsSection.tsx`.
+- Built summary card showing name, headline, email, and avatar initials.
+
+**Manual improvements:**
+- Persisted profile updates server-side in Supabase Auth `user_metadata`.
+- Added read-only email display and validation.
+
+---
+
+### Prompt 11 — Skills and Achievements Management
+**Goal:** Implement real-time skills manager and achievements/certifications tracker in Settings.  
+**Prompt:**
+> "Add Skills and Achievements management to Settings. Users should be able to manage professional skills (max 20, duplicate prevention, suggestions) and achievements/certifications with date sorting and type badges."
+
+**AI assistance:**
+- Built `SkillsSettingsSection.tsx` and `AchievementsSettingsSection.tsx`.
+- Added controlled achievement types (`Certification`, `Award`, `Hackathon`, `Course`, `Competition`, etc.).
+
+**Manual improvements:**
+- Enforced case-insensitive duplicate checking for skills.
+- Added URL scheme check (`http://` or `https://`) for achievement credential links.
+
+---
+
+### Prompt 12 — LinkedIn / GitHub / Professional Profile Links
+**Goal:** Implement social links manager for LinkedIn, GitHub, Portfolio, and X/Twitter in Settings.  
+**Prompt:**
+> "Implement Social Links inside /settings. Allow users to add professional links (LinkedIn, GitHub, Portfolio, X/Twitter). Enforce platform domain validation and safe external link opening (target="_blank" rel="noopener noreferrer")."
+
+**AI assistance:**
+- Created `SocialLinksSettingsSection.tsx` with platform status badges (`✓ Connected` / `Optional`).
+- Displayed saved links in Profile summary card (`LinkedIn ↗`, `GitHub ↗`, `Portfolio ↗`).
+
+**Manual improvements:**
+- Added domain-specific validation (e.g. requiring `linkedin.com` for LinkedIn, `github.com` for GitHub).
+- Ensured external links use `rel="noopener noreferrer"`.
+
+---
+
+### Prompt 13 — Responsive UI & Accessibility Improvements
+**Goal:** Refine responsive layouts, touch target sizing, keyboard focus states, and ARIA labels.  
+**Prompt:**
+> "Review the entire JobTrack application for responsive layout quality, touch target sizing, keyboard navigation, focus indicators, and ARIA labels. Ensure zero horizontal overflow on mobile viewports."
+
+**AI assistance:**
+- Applied responsive Tailwind utility classes (`sm:`, `md:`, `lg:`).
+- Added `aria-label` tags and focus ring utilities.
+
+**Manual improvements:**
+- Adjusted mobile sidebar drawer z-indexes.
+- Ensured form modal backdrops blur background content smoothly.
+
+---
+
+### Prompt 14 — Public Landing Page Implementation
+**Goal:** Convert root route `/` into a public marketing landing page while preserving authenticated dashboard behavior.  
+**Prompt:**
+> "Turn the root route / into a public JobTrack landing page for signed-out visitors. Authenticated users must continue seeing the existing dashboard at /. Create a hero section with video background, feature highlights, and CTA buttons."
+
+**AI assistance:**
+- Built `HomeRoute.tsx` smart router and `LandingView.tsx`.
+- Integrated video background and feature showcase sections.
+
+**Manual improvements:**
+- Verified route boundary to ensure authenticated users are served `DashboardView` directly inside `AppLayout`.
+
+---
+
+### Prompt 15 — SEO Implementation & Metadata
+**Goal:** Implement site-wide SEO metadata, Open Graph tags, canonical links, and title/description hooks.  
+**Prompt:**
+> "Implement a complete SEO foundation for JobTrack using production domain https://www.jobtrack.co.in/. Add page titles, meta descriptions, Open Graph, Twitter Cards, and canonical tags for public routes without adding heavy external dependencies."
+
+**AI assistance:**
+- Configured static `<head>` metadata in `index.html`.
+- Created route-specific document title and description hooks.
+
+**Manual improvements:**
+- Verified canonical URLs point strictly to production `https://www.jobtrack.co.in/`.
+
+---
+
+### Prompt 16 — Sitemap and robots.txt
+**Goal:** Create `robots.txt` crawler directives and `sitemap.xml` listing indexable public routes.  
+**Prompt:**
+> "Create public/robots.txt and public/sitemap.xml for JobTrack. Only include public indexable pages (landing page, signup) and disallow private authenticated application routes."
+
+**AI assistance:**
+- Generated `public/robots.txt` and `public/sitemap.xml`.
+
+**Manual improvements:**
+- Verified private paths (`/applications`, `/settings`, `/forgot-password`) are disallowed in `robots.txt`.
+
+---
+
+### Prompt 17 — JSON-LD / Structured Data
+**Goal:** Embed Schema.org structured data in `index.html`.  
+**Prompt:**
+> "Add valid JSON-LD structured data to index.html using Schema.org Organization and WebSite schema. Only include verifiable site details."
+
+**AI assistance:**
+- Created JSON-LD script block in `<head>`.
+
+**Manual improvements:**
+- Placed JSON-LD statically in HTML so search crawlers parse it without executing JS.
+
+---
+
+### Prompt 18 — Unit Testing Setup
+**Goal:** Write native unit tests covering validation, auth helpers, SEO, and storage mappings.  
+**Prompt:**
+> "Write unit tests for JobTrack using Node.js native test runner (node --test). Cover form validation rules, auth error mapping, theme resolution, application status conversion, and SEO metadata."
+
+**AI assistance:**
+- Scaffolded unit test files (`*.test.ts`).
+
+**Manual improvements:**
+- Expanded test assertions to achieve 222 passing tests.
+
+---
+
+### Prompt 19 — Build and Lint Verification
+**Goal:** Verify codebase quality using Oxlint, TypeScript compiler, and Vite build.  
+**Prompt:**
+> "Inspect the codebase with oxlint and verify TypeScript compilation and Vite build with tsc -b && vite build. Resolve any lint warnings or type errors."
+
+**AI assistance:**
+- Resolved unused import warnings and type checks.
+
+**Manual improvements:**
+- Verified 0 lint errors/warnings across all 168 workspace files.
+
+---
+
+### Prompt 20 — Documentation & README
+**Goal:** Create a comprehensive, recruiter-ready project README.md documenting architecture, features, setup, and prompts.  
+**Prompt:**
+> "Create a professional README.md for JobTrack. Document project overview, real features, tech stack, directory structure, user journey, setup instructions, testing setup, build prompts, and manual refactoring improvements."
+
+**AI assistance:**
+- Drafted structured markdown sections.
+
+**Manual improvements:**
+- Verified all technical details against `package.json` and live source files.
+
+---
+
+## 🤖 How AI Assisted
+
+AI coding tools were used throughout the development lifecycle to streamline construction, refactoring, and quality assurance:
+
+- **Architecture & Planning**: AI assisted in establishing modular directory trees, separating UI components from auth/storage services, and setting up protected routing boundaries.
+- **Component Drafting & Styling**: AI helped generate initial JSX structures, Tailwind CSS utility classes, and accessible form controls.
+- **Debugging & Error Diagnosis**: AI assisted in analyzing TypeScript errors, resolving Supabase session state edge cases, and debugging route redirects.
+- **Unit Testing Suite**: AI assisted in scaffolding unit test suites covering form validation, status conversions, and SEO metadata.
+- **Build & Lint Optimization**: AI helped identify unused imports and type mismatches checked by Oxlint and the TypeScript compiler.
+- **SEO & Web Standards**: AI assisted in creating JSON-LD schemas, sitemaps, Open Graph tags, and crawler directives.
+- **Human Supervision & Review**: Every AI proposal was manually reviewed, tested, corrected, and verified against the live application codebase.
+
+---
+
+## 🛠️ Manual Improvements & Corrections
+
+Key manual engineering improvements and corrections made during code review and refinement include:
+
+1. **Type-Safe Storage Transformation**:
+   - Wrote explicit camelCase ↔ snake_case conversion functions (`rowToApplication`, `applicationToInsertRow`) to keep React components type-safe without leaking database column conventions into UI props.
+2. **Unified Theme State Management**:
+   - Refactored Settings Preferences to consume the top-level `useTheme()` context directly, preventing state desynchronization between top-bar toggles and settings switches.
+3. **URL & Security Protocol Hardening**:
+   - Added explicit `http://` / `https://` scheme validation for achievement credential URLs and social links to prevent unsafe protocol execution (`javascript:`). Enforced `rel="noopener noreferrer"` on all external links.
+4. **WebGL Canvas Event Passthrough**:
+   - Applied `pointer-events-none` to the `SplashCursor` canvas overlay so visual background animations never block button clicks or navigation links.
+5. **SEO & Indexing Boundary Protection**:
+   - Verified that private authenticated routes (`/applications`, `/settings`) are disallowed in `robots.txt` and excluded from `sitemap.xml`.
+6. **Account Deletion Safety Dialog**:
+   - Built a confirmation modal requiring typing exact string `DELETE` to prevent accidental account deletion without exposing backend service-role credentials.
+
+---
+
+## 🔍 Verification
+
+The JobTrack codebase is continuously verified using native testing, Oxlint, and TypeScript compilation:
+
+```bash
+# Run unit test suite (222 tests)
+npm test
+
+# Run Oxlint high-performance linter
+npm run lint
+
+# Type-check and compile production build
+npm run build
+```
+
+---
+
 ## 📜 License
 
 Distributed under the MIT License. See `LICENSE` for more information.
 
 ---
 
-<p center>
+<p align="center">
   Developed with ❤️ by <a href="https://github.com/mr-irfan1">M R Irfan</a> &bull; Live at <a href="https://www.jobtrack.co.in/">jobtrack.co.in</a>
 </p>
