@@ -32,8 +32,10 @@ export interface SignupViewModel {
   fieldErrors: SignupFieldErrors
   formError: string | null
   submitting: boolean
+  oauthLoadingProvider: 'google' | 'github' | null
   status: SignupStatus
   handleSubmit: (event: FormEvent<HTMLFormElement>) => void
+  handleOAuthSignUp: (provider: 'google' | 'github') => void
 }
 
 /**
@@ -45,7 +47,7 @@ export interface SignupViewModel {
  * never pretends the user is logged in when no session was returned.
  */
 export function useSignupViewModel(): SignupViewModel {
-  const { signUp } = useAuth()
+  const { signUp, signInWithOAuth } = useAuth()
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -53,7 +55,29 @@ export function useSignupViewModel(): SignupViewModel {
   const [fieldErrors, setFieldErrors] = useState<SignupFieldErrors>({})
   const [formError, setFormError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [oauthLoadingProvider, setOauthLoadingProvider] = useState<
+    'google' | 'github' | null
+  >(null)
   const [status, setStatus] = useState<SignupStatus>('idle')
+
+  const handleOAuthSignUp = useCallback(
+    (provider: 'google' | 'github') => {
+      setFormError(null)
+      setOauthLoadingProvider(provider)
+      signInWithOAuth(provider)
+        .then(({ error }) => {
+          if (error) {
+            setFormError(signUpErrorMessage(error))
+            setOauthLoadingProvider(null)
+          }
+        })
+        .catch(() => {
+          setFormError(signUpErrorMessage(null))
+          setOauthLoadingProvider(null)
+        })
+    },
+    [signInWithOAuth],
+  )
 
   const handleSubmit = useCallback(
     (event: FormEvent<HTMLFormElement>) => {
@@ -125,7 +149,9 @@ export function useSignupViewModel(): SignupViewModel {
     fieldErrors,
     formError,
     submitting,
+    oauthLoadingProvider,
     status,
     handleSubmit,
+    handleOAuthSignUp,
   }
 }

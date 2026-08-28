@@ -3,8 +3,12 @@ import AuthField from '../../components/auth/AuthField'
 import AuthHero from '../../components/auth/AuthHero'
 import AuthShell from '../../components/auth/AuthShell'
 import PasswordField from '../../components/auth/PasswordField'
-import { authPrimaryButton, authSecondaryLink } from '../../components/auth/authTheme'
-import { ArrowRightIcon } from '../../components/icons/Icons'
+import {
+  authPrimaryButton,
+  authSecondaryLink,
+  authSocialButton,
+} from '../../components/auth/authTheme'
+import { ArrowRightIcon, GitHubIcon, GoogleIcon } from '../../components/icons/Icons'
 import { SIGNUP_SEO } from '../../seo/seo'
 import { useDocumentMeta } from '../../seo/useDocumentMeta'
 import { MIN_PASSWORD_LENGTH } from './signupValidation'
@@ -45,8 +49,10 @@ function SignupView() {
     fieldErrors,
     formError,
     submitting,
+    oauthLoadingProvider,
     status,
     handleSubmit,
+    handleOAuthSignUp,
   } = useSignupViewModel()
 
   useDocumentMeta(SIGNUP_SEO)
@@ -109,6 +115,44 @@ function SignupView() {
         </div>
       ) : null}
 
+      {/* SOCIAL OAUTH SIGN UP */}
+      <div className="mb-6 space-y-3">
+        <button
+          type="button"
+          disabled={submitting || oauthLoadingProvider !== null}
+          onClick={() => handleOAuthSignUp('google')}
+          className={authSocialButton}
+        >
+          <GoogleIcon className="h-5 w-5" />
+          <span>
+            {oauthLoadingProvider === 'google'
+              ? 'Connecting to Google...'
+              : 'Continue with Google'}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          disabled={submitting || oauthLoadingProvider !== null}
+          onClick={() => handleOAuthSignUp('github')}
+          className={authSocialButton}
+        >
+          <GitHubIcon className="h-5 w-5" />
+          <span>
+            {oauthLoadingProvider === 'github'
+              ? 'Connecting to GitHub...'
+              : 'Continue with GitHub'}
+          </span>
+        </button>
+
+        <div className="relative my-6 flex items-center justify-center">
+          <div className="w-full border-t border-border" />
+          <span className="absolute bg-background px-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            Or continue with email
+          </span>
+        </div>
+      </div>
+
       <form onSubmit={handleSubmit} noValidate className="space-y-5">
         <AuthField
           id="fullName"
@@ -154,7 +198,7 @@ function SignupView() {
 
         <button
           type="submit"
-          disabled={submitting}
+          disabled={submitting || oauthLoadingProvider !== null}
           className={authPrimaryButton}
         >
           {submitting ? 'Creating account...' : 'Create account'}

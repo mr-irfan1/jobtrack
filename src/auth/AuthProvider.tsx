@@ -112,6 +112,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
       authService.signInWithPassword(email, password),
     [],
   )
+  const signInWithOAuth = useCallback(
+    (provider: import('@supabase/supabase-js').Provider) =>
+      authService.signInWithOAuth(provider),
+    [],
+  )
   const signOut = useCallback(() => authService.signOut(), [])
   const sendPasswordReset = useCallback(
     (email: string) => authService.resetPasswordForEmail(email),
@@ -130,6 +135,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       error,
       signUp,
       signIn,
+      signInWithOAuth,
       signOut,
       sendPasswordReset,
       updatePassword,
@@ -141,6 +147,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       error,
       signUp,
       signIn,
+      signInWithOAuth,
       signOut,
       sendPasswordReset,
       updatePassword,

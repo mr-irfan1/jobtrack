@@ -184,12 +184,12 @@ function JobTrackFooter() {
                 <a className="jobtrack-footer-nav-link" href="#">
                   Blog
                 </a>
-                <a className="jobtrack-footer-nav-link" href="#">
+                <Link className="jobtrack-footer-nav-link" to="/privacy-policy">
                   Privacy Policy
-                </a>
-                <a className="jobtrack-footer-nav-link" href="#">
+                </Link>
+                <Link className="jobtrack-footer-nav-link" to="/terms">
                   Terms &amp; Conditions
-                </a>
+                </Link>
               </div>
             </nav>
           </div>

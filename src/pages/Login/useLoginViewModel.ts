@@ -17,7 +17,9 @@ export interface LoginViewModel {
   /** A single form-level message for a failed sign-in attempt. */
   formError: string | null
   submitting: boolean
+  oauthLoadingProvider: 'google' | 'github' | null
   handleSubmit: (event: FormEvent<HTMLFormElement>) => void
+  handleOAuthSignIn: (provider: 'google' | 'github') => void
 }
 
 /**
@@ -31,14 +33,38 @@ export interface LoginViewModel {
  * a vetted, user-friendly message and never the raw error.
  */
 export function useLoginViewModel(): LoginViewModel {
-  const { signIn } = useAuth()
+  const { signIn, signInWithOAuth } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [fieldErrors, setFieldErrors] = useState<LoginFieldErrors>({})
-  const [formError, setFormError] = useState<string | null>(null)
+  const [formError, setFormError] = useState<string | null>(
+    (location.state as { authError?: string } | null)?.authError ?? null,
+  )
   const [submitting, setSubmitting] = useState(false)
+  const [oauthLoadingProvider, setOauthLoadingProvider] = useState<
+    'google' | 'github' | null
+  >(null)
+
+  const handleOAuthSignIn = useCallback(
+    (provider: 'google' | 'github') => {
+      setFormError(null)
+      setOauthLoadingProvider(provider)
+      signInWithOAuth(provider)
+        .then(({ error }) => {
+          if (error) {
+            setFormError(signInErrorMessage(error))
+            setOauthLoadingProvider(null)
+          }
+        })
+        .catch(() => {
+          setFormError(signInErrorMessage(null))
+          setOauthLoadingProvider(null)
+        })
+    },
+    [signInWithOAuth],
+  )
 
   const handleSubmit = useCallback(
     (event: FormEvent<HTMLFormElement>) => {
@@ -85,6 +111,8 @@ export function useLoginViewModel(): LoginViewModel {
     fieldErrors,
     formError,
     submitting,
+    oauthLoadingProvider,
     handleSubmit,
+    handleOAuthSignIn,
   }
 }

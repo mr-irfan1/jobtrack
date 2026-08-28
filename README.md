@@ -93,6 +93,12 @@ Searching for a job often involves juggling dozens of applications across multip
 - **Real-Time Badges**: Global header and sidebar counter badges reflecting unread item counts.
 - **Persistent Read States**: Instant "Mark all as read" controls with local persistence.
 
+### 🔑 Social OAuth Authentication (Google & GitHub)
+- **One-Click Authentication**: "Continue with Google" and "Continue with GitHub" social login/signup buttons integrated into `/login` and `/signup`.
+- **Supabase OAuth Integration**: Direct integration via `supabase.auth.signInWithOAuth()` using the `/auth/callback` redirect endpoint.
+- **Centralized Session Handlers**: Full reuse of `AuthContext` and `AuthProvider` with zero session duplication or manual token storage.
+- **Loading & Error Guards**: Provider-specific loading states preventing duplicate clicks and inline error alerts.
+
 ### 👤 Account & Profile Settings (`/settings`)
 - **👤 Profile**: Avatar initials generator, Full Name, Headline, Location, Bio editor, and top Profile Summary Card.
 - **🛠 Skills**: Skill manager featuring real-time counter (`X / 20`), case-insensitive duplicate prevention, quick suggestions, and tag removal.
@@ -100,6 +106,11 @@ Searching for a job often involves juggling dozens of applications across multip
 - **🔗 Social Links**: Platform domain validation for LinkedIn (`linkedin.com`), GitHub (`github.com`), Portfolio, X/Twitter, and safe `target="_blank" rel="noopener noreferrer"` external links.
 - **⚙️ Preferences**: Instant Theme switcher (`Light` / `Dark` mode), notification switches, target job search preferences, default application status selector, and a confirmation modal for restoring defaults.
 - **🔐 Security & Account**: Password updater (8-char min + match check), active session details, secure logout, security tips, and an account deletion modal requiring exact `DELETE` string entry.
+
+### 📄 Public Legal & Informational Pages (`/privacy-policy` & `/terms`)
+- **Privacy Policy Page (`/privacy-policy`)**: Complete, non-authenticated public page detailing data collection, Supabase authentication usage, local storage scope, user rights, data retention, third-party infrastructure, and support contact details.
+- **Terms & Conditions Page (`/terms`)**: Transparent legal terms governing service usage, acceptable use, account responsibilities, IP rights, service availability disclaimer, and governing law (India).
+- **SEO & Sitemap Registration**: Custom title, description, and canonical tags registered in `seo.ts`, linked in `JobTrackFooter`, and indexed in `sitemap.xml` with `0.5` priority.
 
 ### 🔍 Search Engine Optimization (SEO)
 - **Production Canonical Origin**: Configured for `https://www.jobtrack.co.in/`.

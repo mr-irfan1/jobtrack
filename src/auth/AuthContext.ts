@@ -2,6 +2,7 @@ import { createContext } from 'react'
 import type { AuthError, Session, User } from '@supabase/supabase-js'
 import type {
   resetPasswordForEmail,
+  signInWithOAuth,
   signInWithPassword,
   signOut,
   signUp,
@@ -26,6 +27,7 @@ export interface AuthContextValue {
   error: AuthError | null
   signUp: typeof signUp
   signIn: typeof signInWithPassword
+  signInWithOAuth: typeof signInWithOAuth
   signOut: typeof signOut
   sendPasswordReset: typeof resetPasswordForEmail
   updatePassword: typeof updateUserPassword

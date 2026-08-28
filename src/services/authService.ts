@@ -1,4 +1,4 @@
-import type { AuthChangeEvent, Session } from '@supabase/supabase-js'
+import type { AuthChangeEvent, Provider, Session } from '@supabase/supabase-js'
 import type { Achievement } from '../types/achievement'
 import type { SocialLinks } from '../types/socialLinks'
 import type { UserPreferences } from '../types/userPreferences'
@@ -22,6 +22,17 @@ import {
  *
  * Boundary: Auth UI -> Auth ViewModel -> authService -> supabaseClient -> Supabase.
  */
+
+/** Sign in or register using OAuth (Google / GitHub). */
+export function signInWithOAuth(provider: Provider) {
+  const redirectTo = authRedirectUrl(window.location.origin, '/auth/callback')
+  return supabase.auth.signInWithOAuth({
+    provider,
+    options: {
+      redirectTo,
+    },
+  })
+}
 
 /** Register a new account. An optional display name is stored in Supabase Auth
  * user metadata (`user_metadata.full_name`) so it is preserved for future

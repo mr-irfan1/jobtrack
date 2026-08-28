@@ -3,8 +3,10 @@ import { test } from 'node:test'
 import {
   LANDING_SEO,
   LOGIN_SEO,
+  PRIVACY_POLICY_SEO,
   SIGNUP_SEO,
   SITE_ORIGIN,
+  TERMS_SEO,
   siteUrl,
 } from './seo.ts'
 
@@ -38,10 +40,12 @@ test('landing SEO matches the exact required title/description/canonical', () =>
 test('each public route self-canonicalizes to its own production URL', () => {
   assert.equal(LOGIN_SEO.canonical, 'https://www.jobtrack.co.in/login')
   assert.equal(SIGNUP_SEO.canonical, 'https://www.jobtrack.co.in/signup')
+  assert.equal(PRIVACY_POLICY_SEO.canonical, 'https://www.jobtrack.co.in/privacy-policy')
+  assert.equal(TERMS_SEO.canonical, 'https://www.jobtrack.co.in/terms')
 })
 
 test('every canonical is absolute, https, and on the production origin', () => {
-  for (const seo of [LANDING_SEO, LOGIN_SEO, SIGNUP_SEO]) {
+  for (const seo of [LANDING_SEO, LOGIN_SEO, SIGNUP_SEO, PRIVACY_POLICY_SEO, TERMS_SEO]) {
     assert.ok(
       seo.canonical.startsWith('https://www.jobtrack.co.in'),
       `canonical must be on the production origin: ${seo.canonical}`,
@@ -57,7 +61,7 @@ test('login/signup titles are distinct from the landing title (non-competitive)'
 })
 
 test('every route provides a non-empty title and description', () => {
-  for (const seo of [LANDING_SEO, LOGIN_SEO, SIGNUP_SEO]) {
+  for (const seo of [LANDING_SEO, LOGIN_SEO, SIGNUP_SEO, PRIVACY_POLICY_SEO, TERMS_SEO]) {
     assert.ok(seo.title.trim().length > 0)
     assert.ok(seo.description.trim().length > 0)
   }

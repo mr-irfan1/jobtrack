@@ -7,13 +7,16 @@ import ApplicationDetailsView from './pages/ApplicationDetails/ApplicationDetail
 import ApplicationPipelineView from './pages/ApplicationPipeline/ApplicationPipelineView'
 import ApplicationsView from './pages/Applications/ApplicationsView'
 import DashboardView from './pages/Dashboard/DashboardView'
+import AuthCallbackView from './pages/AuthCallback/AuthCallbackView'
 import ForgotPasswordView from './pages/ForgotPassword/ForgotPasswordView'
 import InterviewsView from './pages/Interviews/InterviewsView'
 import LoginView from './pages/Login/LoginView'
 import NotificationsView from './pages/Notifications/NotificationsView'
+import PrivacyPolicyView from './pages/PrivacyPolicy/PrivacyPolicyView'
 import ResetPasswordView from './pages/ResetPassword/ResetPasswordView'
 import SettingsView from './pages/Settings/SettingsView'
 import SignupView from './pages/Signup/SignupView'
+import TermsView from './pages/Terms/TermsView'
 import VerifyEmailView from './pages/VerifyEmail/VerifyEmailView'
 
 function App() {
@@ -29,6 +32,13 @@ function App() {
           <Route element={<AppLayout />}>
             <Route index element={<DashboardView />} />
           </Route>
+        </Route>
+        {/* Public informational pages (Privacy Policy & Terms) share the main
+            AppLayout shell (Header + scrollable main + Footer) without requiring
+            authentication. */}
+        <Route element={<AppLayout />}>
+          <Route path="/privacy-policy" element={<PrivacyPolicyView />} />
+          <Route path="/terms" element={<TermsView />} />
         </Route>
         {/* Remaining in-app pages require an authenticated session. RequireAuth
             gates the branch (redirecting to /login when signed out) and the
@@ -54,6 +64,7 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPasswordView />} />
         <Route path="/reset-password" element={<ResetPasswordView />} />
         <Route path="/verify-email" element={<VerifyEmailView />} />
+        <Route path="/auth/callback" element={<AuthCallbackView />} />
       </Routes>
     </BrowserRouter>
   )

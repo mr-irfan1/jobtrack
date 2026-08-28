@@ -98,3 +98,20 @@ export const VERIFY_EMAIL_SEO: RouteSeo = {
   canonical: siteUrl('/verify-email'),
   robots: 'noindex, nofollow',
 }
+
+export const PRIVACY_POLICY_SEO: RouteSeo = {
+  title: 'JobTrack Privacy Policy | How We Handle Your Data',
+  description:
+    'Read the JobTrack Privacy Policy to understand how account, profile, job application, interview, and authentication information is handled.',
+  canonical: siteUrl('/privacy-policy'),
+  robots: 'index, follow',
+}
+
+export const TERMS_SEO: RouteSeo = {
+  title: 'JobTrack Terms & Conditions | Terms of Use',
+  description:
+    'Read the JobTrack Terms & Conditions covering account use, job application tracking, user responsibilities, service availability, and acceptable use.',
+  canonical: siteUrl('/terms'),
+  robots: 'index, follow',
+}
+

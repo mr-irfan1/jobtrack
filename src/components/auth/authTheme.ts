@@ -39,3 +39,8 @@ export const authPrimaryButton =
 /** Secondary footer link in the JobTrack accent. */
 export const authSecondaryLink =
   'rounded font-medium text-primary transition-colors hover:text-primary/80 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+
+/** Social action button: full-width, 48px, surface fill with subtle border. */
+export const authSocialButton =
+  'inline-flex h-[48px] w-full items-center justify-center gap-3 rounded-xl border border-border bg-surface px-4 text-sm font-semibold text-foreground shadow-xs transition duration-150 hover:bg-muted active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60'
+
