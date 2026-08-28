@@ -5,6 +5,8 @@ import AuthShell from '../../components/auth/AuthShell'
 import PasswordField from '../../components/auth/PasswordField'
 import { authPrimaryButton, authSecondaryLink } from '../../components/auth/authTheme'
 import { ArrowRightIcon } from '../../components/icons/Icons'
+import { LOGIN_SEO } from '../../seo/seo'
+import { useDocumentMeta } from '../../seo/useDocumentMeta'
 import { useLoginViewModel } from './useLoginViewModel'
 
 /**
@@ -25,6 +27,8 @@ function LoginView() {
     submitting,
     handleSubmit,
   } = useLoginViewModel()
+
+  useDocumentMeta(LOGIN_SEO)
 
   return (
     <AuthShell

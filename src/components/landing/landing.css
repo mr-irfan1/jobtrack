@@ -1,0 +1,348 @@
+/*
+ * JobTrack landing page — self-contained cinematic dark theme.
+ *
+ * The marketing page is intentionally ALWAYS dark, independent of the app's
+ * light/dark ThemeProvider: it paints its own palette on a scoped `.landing`
+ * root using explicit values (not the app's theme-reactive tokens, which would
+ * flip to light and break the cinematic look). Layout is done with Tailwind
+ * utilities in the components; this file owns the palette, the button/eyebrow/
+ * card primitives, the scroll-reveal motion, and the grain overlay. All motion
+ * collapses to nothing under prefers-reduced-motion.
+ */
+
+.landing {
+  --lp-bg: #000000;
+  --lp-surface: #101010;
+  --lp-card: #212121;
+  --lp-cream: #e1e0cc;
+  --lp-cream-2: #dedbc8;
+  --lp-muted: #9ca3af;
+  --lp-accent: #2563eb;
+  --lp-accent-strong: #1d4ed8;
+  --lp-line: rgba(255, 255, 255, 0.08);
+  --lp-line-strong: rgba(255, 255, 255, 0.16);
+
+  background-color: var(--lp-bg);
+  color: var(--lp-cream);
+  font-family: 'Almarai', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Editorial serif accent (used sparingly, always italic). */
+.lp-serif {
+  font-family: 'Instrument Serif', ui-serif, Georgia, 'Times New Roman', serif;
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+
+/* --------------------------------------------------------------- Primitives */
+
+.lp-eyebrow {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--lp-muted);
+}
+
+.lp-card {
+  background-color: var(--lp-card);
+  border: 1px solid var(--lp-line);
+  border-radius: 1.25rem;
+}
+
+/* Square accent chip that holds a feature/section icon. */
+.lp-icon-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(37, 99, 235, 0.14);
+  color: var(--lp-accent);
+  border-radius: 0.9rem;
+}
+
+.lp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 9999px;
+  padding: 0.8rem 1.35rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+.lp-btn:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--lp-bg),
+    0 0 0 4px var(--lp-accent);
+}
+.lp-btn-accent {
+  background-color: var(--lp-accent);
+  color: #ffffff;
+}
+.lp-btn-accent:hover {
+  background-color: var(--lp-accent-strong);
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 12px 34px -10px rgba(37, 99, 235, 0.65);
+}
+.lp-btn-ghost {
+  background-color: transparent;
+  color: var(--lp-cream);
+  border: 1px solid var(--lp-line-strong);
+}
+.lp-btn-ghost:hover {
+  background-color: rgba(255, 255, 255, 0.06);
+  transform: translateY(-1px) scale(1.02);
+}
+
+/* Arrow nudges on hover of any enclosing button/link. */
+.lp-arrow {
+  transition: transform 0.2s ease;
+}
+.lp-btn:hover .lp-arrow,
+.group:hover .lp-arrow {
+  transform: translateX(3px);
+}
+
+/* ------------------------------------------------------------------ Ambient */
+
+/* Fixed film-grain overlay. Extremely subtle; never intercepts input. */
+.lp-grain {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.04;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Restrained ambient glow behind the hero. */
+.lp-ambient {
+  background:
+    radial-gradient(
+      60% 50% at 50% 0%,
+      rgba(37, 99, 235, 0.14),
+      transparent 70%
+    ),
+    radial-gradient(
+      42% 42% at 82% 18%,
+      rgba(255, 255, 255, 0.045),
+      transparent 70%
+    );
+}
+
+/* Faint blueprint grid, for the inset hero panel only. */
+.lp-grid-lines {
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 46px 46px;
+  mask-image: radial-gradient(70% 60% at 50% 40%, #000 40%, transparent 100%);
+  -webkit-mask-image: radial-gradient(
+    70% 60% at 50% 40%,
+    #000 40%,
+    transparent 100%
+  );
+}
+
+/* ---------------------------------------------------------------- Hero video */
+
+/* The rounded, full-height cinematic panel that holds the background video and
+   all of its treatment layers. Dark base so nothing flashes before the video
+   paints, and so the panel still reads as an intentional dark hero if the video
+   never loads. */
+.lp-hero-panel {
+  background-color: var(--lp-bg);
+}
+
+/* Base video layer: object-cover, nudged past full-bleed and very slowly
+   breathing in scale so the background feels alive without any obvious motion.
+   transform-origin sits a touch above centre to keep the visual subject framed. */
+.lp-hero-video {
+  transform: scale(1.03);
+  transform-origin: 50% 42%;
+  animation: lp-hero-zoom 22s ease-in-out infinite alternate;
+  will-change: transform;
+}
+@keyframes lp-hero-zoom {
+  from {
+    transform: scale(1.03);
+  }
+  to {
+    transform: scale(1.07);
+  }
+}
+
+/* Brand wash: a whisper of primary blue and warm cream over the footage to tie
+   it to the JobTrack palette and lift text legibility. Static, no motion. */
+.lp-hero-tint {
+  background:
+    linear-gradient(125deg, rgba(37, 99, 235, 0.1), transparent 46%),
+    linear-gradient(0deg, rgba(16, 16, 16, 0.22), rgba(16, 16, 16, 0.22));
+}
+
+/* Atmosphere: two large, soft radial glows that drift and pulse extremely
+   slowly — the only "particle" here is light. */
+.lp-hero-glow {
+  background:
+    radial-gradient(
+      40% 40% at 26% 30%,
+      rgba(37, 99, 235, 0.2),
+      transparent 70%
+    ),
+    radial-gradient(
+      36% 36% at 76% 72%,
+      rgba(225, 224, 204, 0.06),
+      transparent 70%
+    );
+  animation: lp-hero-drift 24s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+@keyframes lp-hero-drift {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: translate3d(-2.5%, -1.5%, 0);
+  }
+  50% {
+    opacity: 0.85;
+    transform: translate3d(2.5%, 1.5%, 0);
+  }
+}
+
+/* -------------------------------------------------------------------- Motion */
+
+/* Scroll-reveal: hidden until its container/element enters the viewport. */
+.lp-reveal {
+  opacity: 0;
+  transform: translateY(26px) scale(0.985);
+  transition:
+    opacity 0.7s cubic-bezier(0.22, 0.61, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 0.61, 0.36, 1);
+  will-change: opacity, transform;
+}
+.lp-reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+.lp-reveal-x {
+  opacity: 0;
+  transform: translateX(48px);
+  transition:
+    opacity 0.8s cubic-bezier(0.22, 0.61, 0.36, 1),
+    transform 0.8s cubic-bezier(0.22, 0.61, 0.36, 1);
+  will-change: opacity, transform;
+}
+.lp-reveal-x.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* Staggered children: each item offset by its --i index. */
+.lp-stagger > .lp-item {
+  opacity: 0;
+  transform: translateY(26px);
+  transition:
+    opacity 0.6s ease,
+    transform 0.6s ease;
+  transition-delay: calc(var(--i, 0) * 90ms);
+  will-change: opacity, transform;
+}
+.lp-stagger.is-visible > .lp-item {
+  opacity: 1;
+  transform: none;
+}
+
+/* Hero headline: word-by-word rise. Each word supplies its own delay inline. */
+@keyframes lp-word-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5em);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.lp-word {
+  display: inline-block;
+  opacity: 0;
+  animation: lp-word-in 0.85s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+
+/* On-load rise for above-the-fold hero elements (subhead, CTAs). Unlike
+   .lp-reveal these are not scroll-triggered — they play once on mount, each
+   supplying its own animation-delay inline. */
+@keyframes lp-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.lp-fade-up {
+  opacity: 0;
+  animation: lp-fade-up 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+
+/* Slow ambient drift for decorative product fragments. */
+@keyframes lp-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+.lp-float {
+  animation: lp-float 7s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-reveal,
+  .lp-reveal-x,
+  .lp-stagger > .lp-item {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .lp-word {
+    opacity: 1 !important;
+    animation: none !important;
+  }
+  .lp-fade-up {
+    opacity: 1 !important;
+    animation: none !important;
+  }
+  .lp-float {
+    animation: none !important;
+  }
+  /* The video keeps playing (it carries no essential information), but its slow
+     scale and the drifting glow are stilled. */
+  .lp-hero-video {
+    animation: none !important;
+    transform: scale(1.04) !important;
+  }
+  .lp-hero-glow {
+    animation: none !important;
+    opacity: 0.6 !important;
+    transform: none !important;
+  }
+}

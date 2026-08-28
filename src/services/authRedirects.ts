@@ -6,6 +6,16 @@
 export const RESET_PASSWORD_PATH = '/reset-password'
 
 /**
+ * App path that Supabase should send the signup verification (magic-link) email
+ * back to. Follows the same convention as RESET_PASSWORD_PATH: a dedicated
+ * public route that reads the resulting session from AuthProvider and shows a
+ * graceful message when the link is invalid or expired. The signup service
+ * supplies this as `emailRedirectTo` so confirmation links return to a page the
+ * app controls rather than a protected route.
+ */
+export const VERIFY_EMAIL_PATH = '/verify-email'
+
+/**
  * Join the current app origin with an app path into an absolute redirect URL for
  * Supabase auth emails.
  *

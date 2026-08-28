@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import type { AuthError } from '@supabase/supabase-js'
-import { signUpErrorMessage } from './signupErrors.ts'
+import {
+  emailAlreadyRegisteredMessage,
+  signUpErrorMessage,
+} from './signupErrors.ts'
 
 /** Build a minimal AuthError-shaped object for the fields the mapper reads. */
 function authError(fields: {
@@ -68,4 +71,14 @@ test('signUpErrorMessage returns a generic message for unknown errors', () => {
 test('signUpErrorMessage never echoes raw error text', () => {
   const raw = 'secret token abcdef123456'
   assert.ok(!signUpErrorMessage(authError({ status: 500, message: raw })).includes(raw))
+})
+
+test('emailAlreadyRegisteredMessage matches the already-exists error copy', () => {
+  // The enumeration-safe duplicate path must show the exact same message a
+  // user_already_exists error would, so the two code paths stay indistinguishable.
+  assert.equal(
+    emailAlreadyRegisteredMessage(),
+    signUpErrorMessage(authError({ code: 'user_already_exists', status: 422 })),
+  )
+  assert.match(emailAlreadyRegisteredMessage(), /already exists/i)
 })

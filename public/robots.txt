@@ -1,0 +1,19 @@
+# JobTrack — https://www.jobtrack.co.in
+# Public pages may be crawled and indexed. The authenticated application area
+# and one-time, token-based auth callback routes are disallowed: they hold no
+# standalone content worth indexing (and require a signed-in session or a valid
+# link token). This does NOT block those routes for real users — robots rules
+# only advise crawlers; the SPA still serves every route normally.
+
+User-agent: *
+Allow: /
+
+# Private, authenticated application area (requires a signed-in session)
+Disallow: /applications
+
+# Transactional / token-based auth routes (no standalone content to index)
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /verify-email
+
+Sitemap: https://www.jobtrack.co.in/sitemap.xml

@@ -28,3 +28,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Vercel CLI project link (holds the local project ref and pulled tokens)
+.vercel

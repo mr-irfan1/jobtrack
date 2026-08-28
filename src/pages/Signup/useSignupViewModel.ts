@@ -6,7 +6,8 @@ import {
   validateSignupForm,
 } from './signupValidation'
 import type { SignupFieldErrors } from './signupValidation'
-import { signUpErrorMessage } from './signupErrors'
+import { emailAlreadyRegisteredMessage, signUpErrorMessage } from './signupErrors'
+import { classifySignupSuccess } from './signupOutcome'
 import { sendWelcomeEmail } from '../../services/welcomeEmailService'
 
 /**
@@ -78,15 +79,29 @@ export function useSignupViewModel(): SignupViewModel {
             setFormError(signUpErrorMessage(error))
             return
           }
-          // Account creation succeeded. Trigger the welcome email as a
-          // fire-and-forget side effect: never await or gate on it, so a failed
-          // or slow send cannot affect auth state or the dashboard redirect.
-          // sendWelcomeEmail never rejects.
+          // Supabase does not return an error when someone signs up with an
+          // email that already belongs to a confirmed account. To avoid leaking
+          // which emails are registered, it returns a successful response with
+          // an empty identities array and no session. Detect that here so we
+          // neither claim a new account was created nor email the existing
+          // owner — this is Supabase Auth's own one-account-per-email handling,
+          // surfaced to the user rather than reimplemented.
+          const outcome = classifySignupSuccess(data)
+          if (outcome === 'email-exists') {
+            setFormError(emailAlreadyRegisteredMessage())
+            return
+          }
+          // A real account was created (or a session was returned because email
+          // confirmation is disabled). Trigger the welcome email as a
+          // fire-and-forget side effect: never awaited or gated on, and kept
+          // entirely separate from Supabase's verification email. It never
+          // rejects, so a failed/slow send cannot affect auth state or routing.
           void sendWelcomeEmail({ name: trimmedName, email: trimmedEmail })
-          // A session means confirmation is disabled and AuthProvider has signed
-          // the user in; no session means confirmation is required. Never fake a
-          // login when there is no session.
-          setStatus(data.session ? 'signed-in' : 'awaiting-confirmation')
+          // 'signed-in' only when a session came back (confirmation disabled);
+          // otherwise 'awaiting-confirmation' — the user must click the
+          // verification link before signing in. Never fake a login without a
+          // session.
+          setStatus(outcome)
         })
         .catch(() => {
           setFormError(signUpErrorMessage(null))

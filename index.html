@@ -32,10 +32,82 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&family=Caveat:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap"
       rel="stylesheet"
     />
-    <title>JobTrack</title>
+    <!--
+      Global SEO metadata (static, SPA-wide).
+      JobTrack is a React + Vite single-page app: one index.html is served for
+      every route, so these tags describe the site as a whole. Per-route <title>/
+      meta would require a runtime head manager (e.g. react-helmet) or a routing
+      change — intentionally NOT added here (no new deps, no routing changes).
+      The canonical points at the site root so private, authenticated routes
+      (/, /applications) and one-time auth callbacks (/reset-password,
+      /verify-email) never self-canonicalize and get indexed under their own URL.
+      Crawling of those paths is further governed by /public/robots.txt.
+    -->
+    <title>JobTrack — Track Jobs, Manage Applications &amp; Land Your Next Opportunity</title>
+    <meta
+      name="description"
+      content="JobTrack helps you organize job applications, track application progress, manage interviews, and stay on top of your job search in one place."
+    />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://www.jobtrack.co.in/" />
+    <meta name="theme-color" content="#2563eb" />
+
+    <!-- Open Graph (Facebook, LinkedIn, Slack, etc.) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="JobTrack" />
+    <meta property="og:title" content="JobTrack — Track Jobs, Manage Applications &amp; Land Your Next Opportunity" />
+    <meta
+      property="og:description"
+      content="JobTrack helps you organize job applications, track application progress, manage interviews, and stay on top of your job search in one place."
+    />
+    <meta property="og:url" content="https://www.jobtrack.co.in/" />
+    <meta property="og:image" content="https://www.jobtrack.co.in/assets/logo.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1254" />
+    <meta property="og:image:height" content="1254" />
+    <meta property="og:image:alt" content="JobTrack logo" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="JobTrack — Track Jobs, Manage Applications &amp; Land Your Next Opportunity" />
+    <meta
+      name="twitter:description"
+      content="JobTrack helps you organize job applications, track application progress, manage interviews, and stay on top of your job search in one place."
+    />
+    <meta name="twitter:image" content="https://www.jobtrack.co.in/assets/logo.png" />
+    <meta name="twitter:image:alt" content="JobTrack logo" />
+
+    <!--
+      Structured data (JSON-LD). Site-wide Organization + WebSite entities for
+      the JobTrack brand and homepage. Placed statically in <head> so search
+      crawlers read it without executing the SPA. Only verifiable facts are
+      described — no ratings, reviews, pricing, or awards. There is no public
+      site search, so no SearchAction is declared.
+    -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "name": "JobTrack",
+            "url": "https://www.jobtrack.co.in/",
+            "logo": "https://www.jobtrack.co.in/assets/logo.png",
+            "description": "JobTrack helps you organize job applications, track application progress, manage interviews, and stay on top of your job search in one place."
+          },
+          {
+            "@type": "WebSite",
+            "name": "JobTrack",
+            "url": "https://www.jobtrack.co.in/",
+            "inLanguage": "en"
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

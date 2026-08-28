@@ -5,6 +5,8 @@ import AuthShell from '../../components/auth/AuthShell'
 import PasswordField from '../../components/auth/PasswordField'
 import { authPrimaryButton, authSecondaryLink } from '../../components/auth/authTheme'
 import { ArrowRightIcon } from '../../components/icons/Icons'
+import { SIGNUP_SEO } from '../../seo/seo'
+import { useDocumentMeta } from '../../seo/useDocumentMeta'
 import { MIN_PASSWORD_LENGTH } from './signupValidation'
 import { useSignupViewModel } from './useSignupViewModel'
 
@@ -47,30 +49,36 @@ function SignupView() {
     handleSubmit,
   } = useSignupViewModel()
 
-  // Confirmation disabled (the project's configured default): the account is
-  // created and AuthProvider already holds the returned session, so send the
-  // user straight to the dashboard — no interstitial "check your email" screen.
-  // RequireAuth admits them because the session is live.
+  useDocumentMeta(SIGNUP_SEO)
+
+  // Email confirmation disabled in the Supabase project: signUp returned a
+  // session, AuthProvider already holds it, so send the user straight to the
+  // dashboard — no interstitial screen. RequireAuth admits them because the
+  // session is live. With verification enabled this branch is not reached.
   if (status === 'signed-in') {
     return <Navigate to="/" replace />
   }
 
-  // Fallback, only reachable if email confirmation is still enabled in the
-  // Supabase project: no session was returned, so the user is NOT logged in.
-  // Point them back to sign in rather than pretending they are authenticated.
+  // Primary path with email verification enabled: the account was created but
+  // no session was returned, so the user is NOT logged in yet. Supabase has
+  // emailed a verification (magic) link; they must click it to confirm before
+  // signing in. Never pretend they are authenticated here.
   if (status === 'awaiting-confirmation') {
     return (
       <AuthShell hero={signupHero}>
         <div className="mb-8">
           <h1 className="text-[28px] font-semibold tracking-tight text-foreground sm:text-[34px]">
-            Account created
+            Confirm your email
           </h1>
         </div>
         <div
           role="status"
           className="rounded-xl border border-success/30 bg-success/10 p-4 text-sm text-success-fg"
         >
-          Account created. Please check your email to confirm your account.
+          Your account was created. We&rsquo;ve sent a verification link to{' '}
+          <span className="font-medium">{email}</span>. Click it to confirm your
+          account, then sign in. If it&rsquo;s not in your inbox, check your spam
+          folder.
         </div>
         <div className="mt-6">
           <Link to="/login" className={authPrimaryButton}>

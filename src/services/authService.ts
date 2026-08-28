@@ -1,5 +1,9 @@
 import { supabase } from './supabaseClient'
-import { RESET_PASSWORD_PATH, authRedirectUrl } from './authRedirects'
+import {
+  RESET_PASSWORD_PATH,
+  VERIFY_EMAIL_PATH,
+  authRedirectUrl,
+} from './authRedirects'
 import type { AuthChangeEvent, Session } from '@supabase/supabase-js'
 
 /**
@@ -19,15 +23,20 @@ import type { AuthChangeEvent, Session } from '@supabase/supabase-js'
 /** Register a new account. An optional display name is stored in Supabase Auth
  * user metadata (`user_metadata.full_name`) so it is preserved for future
  * profile functionality without a separate database table. `emailRedirectTo` is
- * where the confirmation link returns; it uses the live origin so it works in
- * any environment (no hardcoded production domain). */
+ * where Supabase's verification (magic-link) email returns after the user
+ * confirms; it uses the live origin joined with VERIFY_EMAIL_PATH (the same
+ * convention as the password-reset redirect) so it works in any environment
+ * without a hardcoded production domain, and lands on a route the app controls
+ * rather than a protected page. When email confirmation is enabled in the
+ * Supabase project, this call triggers Supabase's own verification email — the
+ * app never sends a verification email itself. */
 export function signUp(email: string, password: string, fullName?: string) {
   const name = fullName?.trim()
   return supabase.auth.signUp({
     email,
     password,
     options: {
-      emailRedirectTo: window.location.origin,
+      emailRedirectTo: authRedirectUrl(window.location.origin, VERIFY_EMAIL_PATH),
       // Only attach metadata when a name was supplied; omit it otherwise.
       data: name ? { full_name: name } : undefined,
     },

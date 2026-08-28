@@ -54,3 +54,13 @@ export function signUpErrorMessage(error: AuthError | null): string {
 
   return GENERIC
 }
+
+/**
+ * The user-facing message for an email that already has an account. Exposed so
+ * the ViewModel can reuse the exact same copy for the enumeration-safe duplicate
+ * case, where Supabase returns a successful (error-free) response with an empty
+ * identities array instead of an AuthError. See classifySignupSuccess.
+ */
+export function emailAlreadyRegisteredMessage(): string {
+  return EMAIL_EXISTS
+}
