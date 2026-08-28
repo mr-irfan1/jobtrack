@@ -2,6 +2,9 @@ import { useState } from 'react'
 import ApplicationForm from '../../components/ApplicationForm/ApplicationForm'
 import ApplicationsToolbar from '../../components/ApplicationsToolbar/ApplicationsToolbar'
 import JobApplicationCard from '../../components/JobApplicationCard/JobApplicationCard'
+import AddApplicationOptionSelector from '../../components/JobUrlImport/AddApplicationOptionSelector'
+import type { AddApplicationMode } from '../../components/JobUrlImport/AddApplicationOptionSelector'
+import JobUrlImportForm from '../../components/JobUrlImport/JobUrlImportForm'
 import type {
   ApplicationDraft,
   ApplicationStatus,
@@ -28,20 +31,24 @@ function ApplicationsView() {
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingApplication, setEditingApplication] =
     useState<JobApplication | null>(null)
+  const [addMode, setAddMode] = useState<AddApplicationMode | null>(null)
 
   function handleAddClick(): void {
     setEditingApplication(null)
+    setAddMode(null)
     setIsFormOpen(true)
   }
 
   function handleEdit(application: JobApplication): void {
     setEditingApplication(application)
+    setAddMode('manual')
     setIsFormOpen(true)
   }
 
   function handleCancel(): void {
     setIsFormOpen(false)
     setEditingApplication(null)
+    setAddMode(null)
   }
 
   function handleSubmit(draft: ApplicationDraft): void {
@@ -53,6 +60,7 @@ function ApplicationsView() {
     }
     setIsFormOpen(false)
     setEditingApplication(null)
+    setAddMode(null)
   }
 
   // Status changes reuse the existing update flow rather than a separate path.
@@ -86,12 +94,32 @@ function ApplicationsView() {
       </header>
 
       {isFormOpen ? (
-        <ApplicationForm
-          key={editingApplication?.id ?? 'new'}
-          initialValue={editingApplication ?? undefined}
-          onSubmit={handleSubmit}
-          onCancel={handleCancel}
-        />
+        editingApplication ? (
+          <ApplicationForm
+            key={editingApplication.id}
+            initialValue={editingApplication}
+            onSubmit={handleSubmit}
+            onCancel={handleCancel}
+          />
+        ) : addMode === 'manual' ? (
+          <ApplicationForm
+            key="new-manual"
+            onSubmit={handleSubmit}
+            onCancel={() => setAddMode(null)}
+          />
+        ) : addMode === 'url-import' ? (
+          <JobUrlImportForm
+            key="new-import"
+            existingApplications={applications}
+            onAddApplication={addApplication}
+            onCancel={() => setAddMode(null)}
+          />
+        ) : (
+          <AddApplicationOptionSelector
+            onSelectMode={setAddMode}
+            onCancel={handleCancel}
+          />
+        )
       ) : null}
 
       {loading ? (

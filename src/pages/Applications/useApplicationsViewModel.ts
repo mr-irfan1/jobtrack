@@ -27,7 +27,7 @@ export interface ApplicationsViewModel {
   setStatusFilter: (value: StatusFilter) => void
   clearFilters: () => void
   loadApplications: () => void
-  addApplication: (draft: ApplicationDraft) => void
+  addApplication: (draft: ApplicationDraft) => Promise<JobApplication>
   editApplication: (application: JobApplication) => void
   removeApplication: (id: string) => void
 }
@@ -59,15 +59,20 @@ export function useApplicationsViewModel(): ApplicationsViewModel {
     }
   }, [])
 
-  const addApplication = useCallback(async (draft: ApplicationDraft) => {
-    try {
-      const created = await createApplication(draft)
-      setApplications((current) => [...current, created])
-      setError(null)
-    } catch {
-      setError(SAVE_ERROR)
-    }
-  }, [])
+  const addApplication = useCallback(
+    async (draft: ApplicationDraft): Promise<JobApplication> => {
+      try {
+        const created = await createApplication(draft)
+        setApplications((current) => [...current, created])
+        setError(null)
+        return created
+      } catch (err) {
+        setError(SAVE_ERROR)
+        throw err
+      }
+    },
+    [],
+  )
 
   const editApplication = useCallback(async (application: JobApplication) => {
     try {
