@@ -3,15 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="google-site-verification" content="XQlAkPJ3Aq67BjhZWADsdrQ0JwB3Qoz5fNCRX_1rcl8" />
+    <link rel="canonical" href="https://jobtrack.co.in/"/>
     <script>
-      /*
-       * Pre-paint theme boot: set <html data-theme> before the app renders so
-       * the first paint already matches the user's theme (no flash, no
-       * transition on load). A stored jobtrack_theme preference wins; otherwise
-       * fall back to the OS prefers-color-scheme. The React ThemeProvider takes
-       * over from here and owns all subsequent changes. Only reads localStorage;
-       * never writes it (system fallback must not pin a preference).
-       */
       (function () {
         try {
           var stored = localStorage.getItem('jobtrack_theme')
