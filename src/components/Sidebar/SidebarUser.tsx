@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { useAuth } from '../../auth/useAuth'
 import { SignOutIcon } from '../icons/Icons'
 import { useLogout } from '../Header/useLogout'
@@ -38,9 +39,9 @@ function SidebarUser({ collapsed }: SidebarUserProps) {
   if (collapsed) {
     return (
       <div className="flex shrink-0 flex-col items-center gap-2 border-t border-border p-3">
-        <span role="img" aria-label={name} title={name} className={avatarClasses}>
+        <Link to="/settings" role="img" aria-label={name} title={name} className={avatarClasses}>
           {mono}
-        </span>
+        </Link>
         <button
           type="button"
           onClick={signOut}
@@ -62,7 +63,10 @@ function SidebarUser({ collapsed }: SidebarUserProps) {
 
   return (
     <div className="shrink-0 space-y-2 border-t border-border p-3">
-      <div className="flex items-center gap-3 rounded-xl px-2 py-1.5">
+      <Link
+        to="/settings"
+        className="flex items-center gap-3 rounded-xl px-2 py-1.5 transition-colors hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
         <span aria-hidden="true" className={avatarClasses}>
           {mono}
         </span>
@@ -74,7 +78,7 @@ function SidebarUser({ collapsed }: SidebarUserProps) {
             </p>
           ) : null}
         </div>
-      </div>
+      </Link>
       <button
         type="button"
         onClick={signOut}

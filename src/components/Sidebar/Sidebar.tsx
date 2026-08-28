@@ -1,5 +1,6 @@
-import { Link, NavLink } from 'react-router-dom'
+import { Link, NavLink, useLocation } from 'react-router-dom'
 import { CloseIcon, CollapseIcon } from '../icons/Icons'
+import { useNotifications } from '../Notifications/useNotifications'
 import { NAV_ITEMS } from './navItems'
 import SidebarUser from './SidebarUser'
 
@@ -15,15 +16,13 @@ interface SidebarProps {
 }
 
 /** Nav link classes; layout tightens to a centered icon when collapsed. */
-function navLinkClasses(collapsed: boolean) {
-  return ({ isActive }: { isActive: boolean }): string => {
-    const base = `relative flex items-center rounded-xl text-sm font-medium transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-      collapsed ? 'justify-center px-2 py-2.5' : 'gap-3 px-3 py-2.5'
-    }`
-    return isActive
-      ? `${base} bg-primary/10 font-semibold text-primary`
-      : `${base} text-muted-foreground hover:bg-muted hover:text-foreground`
-  }
+function getNavLinkClass(collapsed: boolean, isActive: boolean): string {
+  const base = `relative flex items-center rounded-xl text-sm font-medium transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+    collapsed ? 'justify-center px-2 py-2.5' : 'gap-3 px-3 py-2.5'
+  }`
+  return isActive
+    ? `${base} bg-primary/10 font-semibold text-primary`
+    : `${base} text-muted-foreground hover:bg-muted hover:text-foreground`
 }
 
 /**
@@ -45,6 +44,9 @@ function SidebarBody({
   onClose?: () => void
   onToggleCollapse?: () => void
 }) {
+  const location = useLocation()
+  const { badge } = useNotifications()
+
   return (
     <div className="flex h-full flex-col border-r border-border bg-surface text-foreground">
       <div
@@ -89,30 +91,44 @@ function SidebarBody({
         )}
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon
+          const active =
+            item.to === '/dashboard'
+              ? location.pathname === '/dashboard' || location.pathname === '/'
+              : item.to === '/application-pipeline'
+                ? location.pathname === '/application-pipeline' || location.pathname === '/pipeline'
+                : location.pathname === item.to
+
           return (
             <NavLink
               key={item.to}
               to={item.to}
-              end={item.end}
               onClick={onNavigate}
               title={collapsed ? item.label : undefined}
               aria-label={collapsed ? item.label : undefined}
-              className={navLinkClasses(collapsed)}
+              className={getNavLinkClass(collapsed, active)}
             >
-              {({ isActive }) => (
-                <>
-                  {isActive ? (
-                    <span
-                      aria-hidden="true"
-                      className={`absolute left-0 top-1/2 -translate-y-1/2 rounded-r-full bg-primary ${
-                        collapsed ? 'h-6 w-0.5' : 'h-5 w-1'
-                      }`}
-                    />
-                  ) : null}
-                  <Icon className="h-5 w-5 shrink-0" />
-                  {collapsed ? null : <span className="truncate">{item.label}</span>}
-                </>
-              )}
+              {active ? (
+                <span
+                  aria-hidden="true"
+                  className={`absolute left-0 top-1/2 -translate-y-1/2 rounded-r-full bg-primary ${
+                    collapsed ? 'h-6 w-0.5' : 'h-5 w-1'
+                  }`}
+                />
+              ) : null}
+              <Icon className="h-5 w-5 shrink-0" />
+              {collapsed ? null : <span className="truncate">{item.label}</span>}
+              {item.to === '/notifications' && badge ? (
+                <span
+                  aria-hidden="true"
+                  className={`inline-flex items-center justify-center rounded-full bg-primary font-bold text-primary-foreground ${
+                    collapsed
+                      ? 'absolute -right-0.5 -top-0.5 h-4 min-w-4 px-1 text-[10px]'
+                      : 'ml-auto h-5 min-w-5 px-1.5 text-xs'
+                  }`}
+                >
+                  {badge}
+                </span>
+              ) : null}
             </NavLink>
           )
         })}

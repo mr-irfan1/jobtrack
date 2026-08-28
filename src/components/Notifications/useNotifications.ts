@@ -1,18 +1,24 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { JobApplication } from '../../types/application'
-import type { InterviewNotification } from './notifications'
+import type { JobTrackNotification } from './notifications'
 import {
-  buildNotifications,
+  buildComprehensiveNotifications,
   countUnread,
   formatBadgeCount,
   readIdsWith,
   readIdsWithAll,
+  readIdsWithout,
 } from './notifications'
 import { getApplications } from './notificationsModel'
-import { getReadIds, saveReadIds } from './readNotificationsStore'
+import {
+  getDismissedIds,
+  getReadIds,
+  saveDismissedIds,
+  saveReadIds,
+} from './readNotificationsStore'
 
 export interface NotificationsViewModel {
-  notifications: InterviewNotification[]
+  notifications: JobTrackNotification[]
   unreadCount: number
   /** Badge text ('' when there is nothing unread — hide the badge). */
   badge: string
@@ -20,6 +26,8 @@ export interface NotificationsViewModel {
   refresh: () => void
   markAllRead: () => void
   markRead: (id: string) => void
+  markUnread: (id: string) => void
+  dismissNotification: (id: string) => void
 }
 
 /** Local today as YYYY-MM-DD (en-CA) — the app-wide date convention. */
@@ -35,16 +43,16 @@ function localTomorrowISO(now: Date): string {
 }
 
 /**
- * ViewModel for the notification bell. Owns UI state (the loaded applications
+ * ViewModel for the notification bell and page. Owns UI state (the loaded applications
  * and the read-id set) and talks only to the notifications Model + read-state
- * store — never to Supabase or localStorage application data directly. It loads
- * from the same source the Dashboard reads, so it reflects the current user's
- * applications and refreshes whenever that data is re-read (e.g. on open). No
- * polling and no realtime: refresh() is event-driven.
+ * store — never to Supabase or localStorage application data directly.
  */
 export function useNotifications(): NotificationsViewModel {
   const [applications, setApplications] = useState<JobApplication[]>([])
   const [readIds, setReadIds] = useState<ReadonlySet<string>>(
+    () => new Set<string>(),
+  )
+  const [dismissedIds, setDismissedIds] = useState<ReadonlySet<string>>(
     () => new Set<string>(),
   )
 
@@ -55,24 +63,29 @@ export function useNotifications(): NotificationsViewModel {
       setApplications([])
     }
     setReadIds(getReadIds())
+    setDismissedIds(getDismissedIds())
   }, [])
 
-  // Initial load. Reading storage is external-system synchronization (the same
-  // rationale the Dashboard ViewModel documents), so this is intentional.
+  // Initial load. Reading storage is external-system synchronization.
   useEffect(() => {
     // oxlint-disable-next-line react/set-state-in-effect
     refresh()
   }, [refresh])
 
-  const notifications = useMemo(() => {
+  const rawNotifications = useMemo(() => {
     const now = new Date()
-    return buildNotifications(applications, {
+    return buildComprehensiveNotifications(applications, {
       todayISO: localDateISO(now),
       tomorrowISO: localTomorrowISO(now),
       currentYear: now.getFullYear(),
       readIds,
     })
   }, [applications, readIds])
+
+  // Exclude dismissed notifications
+  const notifications = useMemo(() => {
+    return rawNotifications.filter((n) => !dismissedIds.has(n.id))
+  }, [rawNotifications, dismissedIds])
 
   const unreadCount = useMemo(() => countUnread(notifications), [notifications])
   const badge = formatBadgeCount(unreadCount)
@@ -92,5 +105,32 @@ export function useNotifications(): NotificationsViewModel {
     [readIds],
   )
 
-  return { notifications, unreadCount, badge, refresh, markAllRead, markRead }
+  const markUnread = useCallback(
+    (id: string) => {
+      const next = readIdsWithout(readIds, id)
+      saveReadIds(next)
+      setReadIds(next)
+    },
+    [readIds],
+  )
+
+  const dismissNotification = useCallback((id: string) => {
+    setDismissedIds((current) => {
+      const next = new Set(current)
+      next.add(id)
+      saveDismissedIds(next)
+      return next
+    })
+  }, [])
+
+  return {
+    notifications,
+    unreadCount,
+    badge,
+    refresh,
+    markAllRead,
+    markRead,
+    markUnread,
+    dismissNotification,
+  }
 }

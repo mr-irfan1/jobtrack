@@ -129,3 +129,17 @@
     }
   }
 }
+
+/*
+ * Reusable utility to hide visible scrollbars while preserving full scrollability.
+ * Supports Chrome, Safari, Edge, Firefox, and older IE/Edge.
+ */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+

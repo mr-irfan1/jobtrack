@@ -41,10 +41,20 @@ function RecentApplications({ applications }: RecentApplicationsProps) {
             >
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold text-foreground">
-                  {application.company}
+                  <Link
+                    to={`/applications/${application.id}`}
+                    className="hover:text-primary hover:underline"
+                  >
+                    {application.company}
+                  </Link>
                 </p>
                 <p className="truncate text-sm text-muted-foreground">
-                  {application.jobTitle}
+                  <Link
+                    to={`/applications/${application.id}`}
+                    className="hover:text-primary hover:underline"
+                  >
+                    {application.jobTitle}
+                  </Link>
                 </p>
               </div>
               <div className="flex shrink-0 flex-col items-end gap-1">

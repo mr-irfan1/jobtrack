@@ -1,10 +1,13 @@
+import type { AuthChangeEvent, Session } from '@supabase/supabase-js'
+import type { Achievement } from '../types/achievement'
+import type { SocialLinks } from '../types/socialLinks'
+import type { UserPreferences } from '../types/userPreferences'
 import { supabase } from './supabaseClient'
 import {
   RESET_PASSWORD_PATH,
   VERIFY_EMAIL_PATH,
   authRedirectUrl,
 } from './authRedirects'
-import type { AuthChangeEvent, Session } from '@supabase/supabase-js'
 
 /**
  * Thin boundary around `supabase.auth`.
@@ -87,3 +90,20 @@ export function resetPasswordForEmail(email: string) {
 export function updateUserPassword(password: string) {
   return supabase.auth.updateUser({ password })
 }
+
+/** Update the currently authenticated user's profile metadata. */
+export function updateUserProfile(profileData: {
+  full_name?: string
+  headline?: string
+  location?: string
+  bio?: string
+  skills?: string[]
+  achievements?: Achievement[]
+  social_links?: SocialLinks
+  preferences?: UserPreferences
+}) {
+  return supabase.auth.updateUser({
+    data: profileData,
+  })
+}
+

@@ -19,22 +19,32 @@ export type NotificationCategory =
   | 'TODAY_INTERVIEW'
   | 'UPCOMING_INTERVIEW'
   | 'PAST_INTERVIEW'
+  | 'APPLICATION_ADDED'
+  | 'STATUS_CHANGED'
+  | 'SYSTEM'
+
+export type NotificationType = 'application' | 'interview' | 'system'
 
 export interface InterviewNotification {
   /** Stable, deterministic id: applicationId + interviewDate + interviewTime. */
   id: string
-  applicationId: string
+  applicationId?: string
+  type?: NotificationType
   category: NotificationCategory
   /** Primary line, e.g. "Interview scheduled with Google". */
   title: string
   /** Company, retained for the Join action's accessible label. */
-  company: string
+  company?: string
+  jobTitle?: string
+  description?: string
   /** Secondary line, e.g. "Software Engineer • Aug 30 • 10:00 AM • Video". */
   meta: string
   /** Present only when a safe, joinable http(s) meeting link exists. */
   meetingLink?: string
   read: boolean
 }
+
+export type JobTrackNotification = InterviewNotification
 
 export interface NotificationContext {
   /** Local today as YYYY-MM-DD (en-CA), matching the app's date convention. */
@@ -58,14 +68,14 @@ const MONTHS = [
 ] as const
 
 /** Primary-line verb per category; company is appended, e.g. "… with Google". */
-const TITLE_VERBS: Record<NotificationCategory, string> = {
+const TITLE_VERBS: Record<string, string> = {
   TODAY_INTERVIEW: 'Interview today with',
   UPCOMING_INTERVIEW: 'Interview scheduled with',
   PAST_INTERVIEW: 'Past interview with',
 }
 
 /** Category ordering: today first, then upcoming, then past. */
-const CATEGORY_ORDER: Record<NotificationCategory, number> = {
+const CATEGORY_ORDER: Record<string, number> = {
   TODAY_INTERVIEW: 0,
   UPCOMING_INTERVIEW: 1,
   PAST_INTERVIEW: 2,
@@ -156,11 +166,6 @@ function sortKey(application: WithInterviewDate): string {
 
 /**
  * Build the sorted notification list from applications.
- *
- * Only applications with a valid interviewDate qualify (§2). Ordering (§4):
- * today first, then upcoming, then past. Within today/upcoming, chronological
- * (nearest first); within past, most-recent first. Pure and non-mutating — it
- * sorts a copy and reads nothing outside its arguments.
  */
 export function buildNotifications(
   applications: JobApplication[],
@@ -171,11 +176,10 @@ export function buildNotifications(
     const categoryA = categorize(a.interviewDate, context.todayISO)
     const categoryB = categorize(b.interviewDate, context.todayISO)
     if (categoryA !== categoryB) {
-      return CATEGORY_ORDER[categoryA] - CATEGORY_ORDER[categoryB]
+      return (CATEGORY_ORDER[categoryA] ?? 0) - (CATEGORY_ORDER[categoryB] ?? 0)
     }
     const keyA = sortKey(a)
     const keyB = sortKey(b)
-    // Past events read best most-recent-first; future/today nearest-first.
     return categoryA === 'PAST_INTERVIEW'
       ? keyB.localeCompare(keyA)
       : keyA.localeCompare(keyB)
@@ -186,9 +190,12 @@ export function buildNotifications(
     return {
       id,
       applicationId: application.id,
+      type: 'interview' as const,
       category,
       title: `${TITLE_VERBS[category]} ${application.company}`,
       company: application.company,
+      jobTitle: application.jobTitle,
+      description: `Your interview with ${application.company} for ${application.jobTitle} is scheduled for ${formatRelativeDay(application.interviewDate, context)}${application.interviewTime ? ` at ${formatTime12(application.interviewTime)}` : ''}.`,
       meta: formatMeta(application, context),
       meetingLink: isJoinableMeetingLink(application.meetingLink)
         ? application.meetingLink
@@ -198,6 +205,67 @@ export function buildNotifications(
   })
 }
 
+/**
+ * Build comprehensive notification list including applications, interviews, and system notifications.
+ */
+export function buildComprehensiveNotifications(
+  applications: JobApplication[],
+  context: NotificationContext,
+): JobTrackNotification[] {
+  const list: JobTrackNotification[] = []
+
+  // 1. System Welcome Notification
+  const welcomeId = 'sys::welcome'
+  list.push({
+    id: welcomeId,
+    type: 'system',
+    category: 'SYSTEM',
+    title: 'Welcome to JobTrack',
+    description: 'Your JobTrack account is ready. Start tracking your applications.',
+    meta: 'System • Welcome',
+    read: context.readIds.has(welcomeId),
+  })
+
+  // 2. Application Notifications
+  for (const app of applications) {
+    const addedId = `${app.id}::added`
+    list.push({
+      id: addedId,
+      type: 'application',
+      applicationId: app.id,
+      category: 'APPLICATION_ADDED',
+      title: 'Application submitted',
+      company: app.company,
+      jobTitle: app.jobTitle,
+      description: `Your application for ${app.jobTitle} at ${app.company} was successfully added.`,
+      meta: `${app.company} • ${app.jobTitle}`,
+      read: context.readIds.has(addedId),
+    })
+
+    if (app.status && app.status !== 'Wishlist') {
+      const statusId = `${app.id}::status::${app.status}`
+      list.push({
+        id: statusId,
+        type: 'application',
+        applicationId: app.id,
+        category: 'STATUS_CHANGED',
+        title: 'Application status updated',
+        company: app.company,
+        jobTitle: app.jobTitle,
+        description: `Your application at ${app.company} moved to ${app.status}.`,
+        meta: `${app.company} • Status: ${app.status}`,
+        read: context.readIds.has(statusId),
+      })
+    }
+  }
+
+  // 3. Interview Notifications
+  const interviewNotifications = buildNotifications(applications, context)
+  list.push(...interviewNotifications)
+
+  return list
+}
+
 /** Number of unread notifications in a built list. */
 export function countUnread(notifications: InterviewNotification[]): number {
   return notifications.reduce((total, n) => (n.read ? total : total + 1), 0)
@@ -205,7 +273,6 @@ export function countUnread(notifications: InterviewNotification[]): number {
 
 /**
  * Badge text: exact count up to 99, "99+" beyond, and '' (hidden) at zero.
- * Callers hide the badge when this returns an empty string.
  */
 export function formatBadgeCount(count: number): string {
   if (count <= 0) return ''
@@ -222,6 +289,16 @@ export function readIdsWith(
   return next
 }
 
+/** Read-set with one id marked unread (pure; returns a new Set). */
+export function readIdsWithout(
+  current: ReadonlySet<string>,
+  id: string,
+): Set<string> {
+  const next = new Set(current)
+  next.delete(id)
+  return next
+}
+
 /** Read-set with every currently-shown notification marked read (pure). */
 export function readIdsWithAll(
   current: ReadonlySet<string>,
@@ -231,3 +308,4 @@ export function readIdsWithAll(
   for (const n of notifications) next.add(n.id)
   return next
 }
+

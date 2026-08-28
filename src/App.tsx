@@ -3,11 +3,16 @@ import AppLayout from './components/AppLayout/AppLayout'
 import HomeRoute from './components/HomeRoute/HomeRoute'
 import RequireAuth from './components/RequireAuth/RequireAuth'
 import SplashCursor from './components/SplashCursor/SplashCursor'
+import ApplicationDetailsView from './pages/ApplicationDetails/ApplicationDetailsView'
+import ApplicationPipelineView from './pages/ApplicationPipeline/ApplicationPipelineView'
 import ApplicationsView from './pages/Applications/ApplicationsView'
 import DashboardView from './pages/Dashboard/DashboardView'
 import ForgotPasswordView from './pages/ForgotPassword/ForgotPasswordView'
+import InterviewsView from './pages/Interviews/InterviewsView'
 import LoginView from './pages/Login/LoginView'
+import NotificationsView from './pages/Notifications/NotificationsView'
 import ResetPasswordView from './pages/ResetPassword/ResetPasswordView'
+import SettingsView from './pages/Settings/SettingsView'
 import SignupView from './pages/Signup/SignupView'
 import VerifyEmailView from './pages/VerifyEmail/VerifyEmailView'
 
@@ -30,7 +35,14 @@ function App() {
             standard Header + main shell is shared via AppLayout. */}
         <Route element={<RequireAuth />}>
           <Route element={<AppLayout />}>
+            <Route path="/dashboard" element={<DashboardView />} />
             <Route path="/applications" element={<ApplicationsView />} />
+            <Route path="/applications/:id" element={<ApplicationDetailsView />} />
+            <Route path="/application-pipeline" element={<ApplicationPipelineView />} />
+            <Route path="/pipeline" element={<ApplicationPipelineView />} />
+            <Route path="/interviews" element={<InterviewsView />} />
+            <Route path="/notifications" element={<NotificationsView />} />
+            <Route path="/settings" element={<SettingsView />} />
           </Route>
         </Route>
         {/* Public auth pages each render their own full-screen two-column

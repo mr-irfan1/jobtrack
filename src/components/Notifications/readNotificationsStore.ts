@@ -11,6 +11,8 @@
 
 /** Dedicated key for read notification ids — NOT the application data key. */
 export const READ_STORAGE_KEY = 'jobtrack_read_notifications'
+/** Dedicated key for dismissed notification ids. */
+export const DISMISSED_STORAGE_KEY = 'jobtrack_dismissed_notifications'
 
 /** Parse a raw stored value into a list of ids; [] for anything malformed. */
 export function parseReadIds(raw: string | null): string[] {
@@ -41,3 +43,22 @@ export function saveReadIds(ids: Iterable<string>): void {
     // UI-only state — a full/unavailable store must not break the app.
   }
 }
+
+/** The set of dismissed notification ids from storage. */
+export function getDismissedIds(): Set<string> {
+  try {
+    return new Set(parseReadIds(localStorage.getItem(DISMISSED_STORAGE_KEY)))
+  } catch {
+    return new Set()
+  }
+}
+
+/** Persist the dismissed notification ids. */
+export function saveDismissedIds(ids: Iterable<string>): void {
+  try {
+    localStorage.setItem(DISMISSED_STORAGE_KEY, JSON.stringify([...ids]))
+  } catch {
+    // UI-only state
+  }
+}
+

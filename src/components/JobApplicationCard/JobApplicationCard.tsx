@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { APPLICATION_STATUSES } from '../../types/application'
 import type { ApplicationStatus, JobApplication } from '../../types/application'
 import StatusBadge from '../StatusBadge/StatusBadge'
@@ -44,22 +45,32 @@ function JobApplicationCard({
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h2 className="truncate text-base font-semibold text-foreground">
+            <Link
+              to={`/applications/${id}`}
+              className="hover:text-primary hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              {company}
+            </Link>
             {isOpenableUrl(application.jobUrl) ? (
               <a
                 href={application.jobUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={`Open job posting for ${company} (opens in a new tab)`}
-                className="inline-flex items-center gap-1.5 rounded-sm hover:text-primary hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="ml-1.5 inline-flex items-center gap-1.5 rounded-sm hover:text-primary hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
-                <span className="truncate">{company}</span>
                 <ExternalLinkIcon className="h-3.5 w-3.5 shrink-0 text-muted-foreground/70" />
               </a>
-            ) : (
-              company
-            )}
+            ) : null}
           </h2>
-          <p className="truncate text-sm text-muted-foreground">{jobTitle}</p>
+          <p className="truncate text-sm text-muted-foreground">
+            <Link
+              to={`/applications/${id}`}
+              className="hover:text-primary hover:underline"
+            >
+              {jobTitle}
+            </Link>
+          </p>
         </div>
         <StatusBadge status={status} />
       </div>
