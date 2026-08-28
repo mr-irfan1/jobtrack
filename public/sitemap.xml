@@ -1,33 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  JobTrack sitemap — https://www.jobtrack.co.in
-  Lists ONLY publicly accessible, indexable routes that actually exist in the
-  app's router (src/App.tsx):
-
-    /         public marketing landing page (signed-out visitors + crawlers);
-              signed-in users are served the dashboard at the same URL, which
-              crawlers never see.
-    /signup   public account-creation page (acquisition entry point).
-
-  Deliberately EXCLUDED:
-    /login            returning-user utility; not a useful search landing page
-    /applications     authenticated, user-specific data
-    /forgot-password  thin auth utility
-    /reset-password   one-time, token-based callback (no standalone content)
-    /verify-email     one-time, token-based callback (no standalone content)
-  Priorities are relative and honest: the homepage leads, signup follows.
--->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
   <url>
-    <loc>https://www.jobtrack.co.in/</loc>
+    <loc>https://jobtrack.co.in/</loc>
     <lastmod>2026-08-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
   </url>
+
   <url>
-    <loc>https://www.jobtrack.co.in/signup</loc>
+    <loc>https://jobtrack.co.in/signup</loc>
     <lastmod>2026-08-28</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.8</priority>
   </url>
+
 </urlset>
