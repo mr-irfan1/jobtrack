@@ -24,6 +24,12 @@ export interface JobListing {
   postedDate: string // ISO date or formatted date
   source: string
   applyUrl: string
+  sourceJobId?: string
+  canonicalUrl?: string
+  sourceMetadata?: Record<string, unknown>
+  rawSourceId?: string | null
+  isActive?: boolean
+  expiresAt?: string | null
 }
 
 export interface JobFeedFilterState {

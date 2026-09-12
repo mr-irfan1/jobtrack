@@ -1,17 +1,16 @@
-import type { EmploymentType, JobListing, WorkplaceType } from '../types/jobFeed'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import type { EmploymentType, JobListing, WorkplaceType } from '../types/jobFeed.ts'
+import { supabase as defaultSupabase } from './supabaseClient.ts'
 
 /**
  * Service to fetch and normalize public job opportunities.
  *
- * Sourced via Remotive's public developer API (https://remotive.com/api/remote-jobs),
- * which explicitly permits developers to display jobs with backlink and attribution.
- *
- * Security & Integrity:
- * - Read-only public endpoints; no private credentials required.
- * - No scraping of protected sites (LinkedIn, Indeed, Naukri, etc.).
- * - Sanitizes raw HTML descriptions into clean readable text.
- * - Enforces valid http/https URLs for safe linking.
- * - In-memory cache for ultra-fast instant UI responsiveness.
+ * Source of Truth:
+ * - Primary Source: Supabase `public.jobs` (centralized canonical jobs database,
+ *   populated by the server-side ingestion worker).
+ * - External provider APIs are NEVER called directly by the browser during normal feed loading.
+ * - Verified fallback listings activate ONLY during genuine backend/network failure or offline mode.
+ * - An empty query result (`[]`) from Supabase is treated as legitimate empty state, NOT an error.
  */
 
 export interface RemotiveRawJob {
@@ -28,10 +27,6 @@ export interface RemotiveRawJob {
   salary?: string
   description?: string
 }
-
-let cachedJobs: JobListing[] | null = null
-let cacheTimestamp = 0
-const CACHE_TTL_MS = 5 * 60 * 1000 // 5 minutes in-memory cache
 
 export function mapRemotiveJobType(jobType?: string): EmploymentType {
   if (!jobType) return 'Full-time'
@@ -90,7 +85,79 @@ export function rawToJobListing(raw: RemotiveRawJob): JobListing {
 }
 
 /**
- * High-quality verified fallback listings in case user is offline or the external API is unreachable.
+ * Normalizes a database row from Supabase `public.jobs` into the frontend `JobListing` interface.
+ * Validates essential fields (title, company, valid apply URL).
+ * Safely rejects malformed records by returning `null`.
+ */
+export function dbRowToJobListing(row: unknown): JobListing | null {
+  if (!row || typeof row !== 'object') return null
+  const r = row as Record<string, any>
+
+  const title = typeof r.title === 'string' ? r.title.trim() : ''
+  const company = typeof r.company === 'string' ? r.company.trim() : ''
+  const applyUrl = typeof r.apply_url === 'string' ? r.apply_url.trim() : ''
+
+  // Validate essential fields required for safe display and application
+  if (!title || !company || !applyUrl) {
+    return null
+  }
+
+  // Enforce valid protocol
+  if (!/^https?:\/\//i.test(applyUrl)) {
+    return null
+  }
+
+  // Normalize workplace type
+  let workplaceType: WorkplaceType = 'Remote'
+  if (r.workplace_type === 'Hybrid' || r.workplace_type === 'On-site') {
+    workplaceType = r.workplace_type
+  }
+
+  // Normalize employment type
+  let employmentType: EmploymentType = 'Full-time'
+  if (['Full-time', 'Part-time', 'Contract', 'Internship', 'Other'].includes(r.employment_type)) {
+    employmentType = r.employment_type
+  }
+
+  // Normalize skills array
+  const skills = Array.isArray(r.skills)
+    ? r.skills.filter((s: unknown): s is string => typeof s === 'string' && Boolean(s.trim()))
+    : []
+
+  // Source name formatting
+  const sourceName = typeof r.source_name === 'string' && r.source_name.trim()
+    ? r.source_name.trim()
+    : typeof r.source === 'string' && r.source.trim()
+      ? r.source.charAt(0).toUpperCase() + r.source.slice(1)
+      : 'JobTrack'
+
+  return {
+    id: String(r.id || `${r.source || 'job'}-${r.source_job_id || Date.now()}`),
+    title,
+    company,
+    companyLogo: typeof r.company_logo === 'string' && r.company_logo.trim() ? r.company_logo.trim() : null,
+    location: typeof r.location === 'string' && r.location.trim() ? r.location.trim() : 'Remote',
+    workplaceType,
+    employmentType,
+    category: typeof r.category === 'string' && r.category.trim() ? r.category.trim() : 'Software Development',
+    salary: typeof r.salary_raw === 'string' && r.salary_raw.trim() ? r.salary_raw.trim() : null,
+    description: typeof r.description === 'string' ? r.description.trim() : '',
+    skills,
+    postedDate: r.posted_at || new Date().toISOString(),
+    source: sourceName,
+    applyUrl,
+    // Canonical metadata
+    sourceJobId: r.source_job_id ? String(r.source_job_id) : undefined,
+    canonicalUrl: r.canonical_url ? String(r.canonical_url) : undefined,
+    sourceMetadata: r.source_metadata && typeof r.source_metadata === 'object' ? r.source_metadata : {},
+    rawSourceId: r.raw_source_id ? String(r.raw_source_id) : null,
+    isActive: r.is_active !== undefined ? Boolean(r.is_active) : true,
+    expiresAt: r.expires_at || null,
+  }
+}
+
+/**
+ * High-quality verified fallback listings in case user is offline or the backend is unreachable.
  * Guaranteed to reflect realistic software opportunities with zero broken links.
  */
 export const FALLBACK_VERIFIED_JOBS: JobListing[] = [
@@ -181,46 +248,88 @@ export const FALLBACK_VERIFIED_JOBS: JobListing[] = [
   },
 ]
 
-export async function fetchJobListings(options?: {
+// ---------------------------------------------------------------------------
+// In-Memory Client Cache
+// ---------------------------------------------------------------------------
+let cachedJobListings: JobListing[] | null = null
+let lastFetchTimestamp = 0
+const CACHE_TTL_MS = 5 * 60 * 1000 // 5 minutes
+
+export function clearJobFeedCache(): void {
+  cachedJobListings = null
+  lastFetchTimestamp = 0
+}
+
+export interface FetchJobListingsOptions {
   forceRefresh?: boolean
   limit?: number
-}): Promise<JobListing[]> {
-  const now = Date.now()
-  if (!options?.forceRefresh && cachedJobs && now - cacheTimestamp < CACHE_TTL_MS) {
-    return cachedJobs
+  client?: SupabaseClient
+}
+
+/**
+ * Fetches normalized job listings from Supabase `public.jobs` (primary source).
+ *
+ * Rules:
+ * 1. Queries Supabase `public.jobs` where `is_active = true` ordered by `posted_at DESC`.
+ * 2. Does NOT call external provider APIs from the browser.
+ * 3. Fallback activates ONLY on genuine backend/network failure or unreachable endpoint.
+ * 4. Empty result (`[]`) is returned as-is (NEVER falls back to local jobs for legitimate empty results).
+ * 5. Corrupted records are dropped safely; valid records in the same batch are preserved.
+ */
+export async function fetchJobListings(options?: FetchJobListingsOptions): Promise<JobListing[]> {
+  const forceRefresh = Boolean(options?.forceRefresh)
+
+  // 1. Check in-memory cache
+  if (!forceRefresh && cachedJobListings !== null && Date.now() - lastFetchTimestamp < CACHE_TTL_MS) {
+    return cachedJobListings
   }
+
+  const client = options?.client || defaultSupabase
+  const limit = options?.limit ?? 100
 
   try {
-    const limit = options?.limit ?? 60
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 8000)
+    const { data, error } = await client
+      .from('jobs')
+      .select('*')
+      .eq('is_active', true)
+      .order('posted_at', { ascending: false })
+      .limit(limit)
 
-    const res = await fetch(`https://remotive.com/api/remote-jobs?limit=${limit}`, {
-      signal: controller.signal,
-      headers: {
-        Accept: 'application/json',
-      },
-    })
-    clearTimeout(timeoutId)
-
-    if (!res.ok) {
-      throw new Error(`Remotive API responded with HTTP status ${res.status}`)
+    // Backend query error -> activate graceful fallback
+    if (error) {
+      console.warn('[JobFeed] Supabase query failed, falling back to verified listings:', error.message)
+      return FALLBACK_VERIFIED_JOBS
     }
 
-    const data = (await res.json()) as { jobs?: RemotiveRawJob[] }
-    if (Array.isArray(data.jobs) && data.jobs.length > 0) {
-      const parsed = data.jobs.map(rawToJobListing)
-      cachedJobs = parsed
-      cacheTimestamp = now
-      return parsed
+    if (!Array.isArray(data)) {
+      console.warn('[JobFeed] Supabase returned unexpected non-array response, falling back to verified listings')
+      return FALLBACK_VERIFIED_JOBS
     }
-  } catch {
-    // Graceful fallback to verified listings if network or rate limit fails
-  }
 
-  if (cachedJobs && cachedJobs.length > 0) {
-    return cachedJobs
-  }
+    // Genuinely empty query result from remote database -> return empty array (do NOT fallback)
+    if (data.length === 0) {
+      cachedJobListings = []
+      lastFetchTimestamp = Date.now()
+      return []
+    }
 
-  return FALLBACK_VERIFIED_JOBS
+    // Transform and validate each record
+    const validListings: JobListing[] = []
+    for (const row of data) {
+      const listing = dbRowToJobListing(row)
+      if (listing) {
+        validListings.push(listing)
+      }
+    }
+
+    cachedJobListings = validListings
+    lastFetchTimestamp = Date.now()
+    return validListings
+  } catch (err) {
+    console.warn(
+      '[JobFeed] Network or client exception during job fetch, activating fallback:',
+      err instanceof Error ? err.message : String(err),
+    )
+    return FALLBACK_VERIFIED_JOBS
+  }
 }

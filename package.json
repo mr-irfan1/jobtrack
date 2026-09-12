@@ -8,7 +8,9 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "test": "node --test"
+    "test": "node --test",
+    "ingest:manual": "node --no-warnings scripts/triggerIngestion.ts",
+    "ingest:status": "node --no-warnings scripts/triggerIngestion.ts --status"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.4",

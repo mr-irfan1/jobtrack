@@ -7,6 +7,7 @@ export interface JobAlertCriteria {
   employmentType?: string
   category?: string
   location?: string
+  skills?: string[]
 }
 
 export interface JobAlert {

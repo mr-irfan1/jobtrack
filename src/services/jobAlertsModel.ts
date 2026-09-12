@@ -109,11 +109,32 @@ export function validateAlertDraft(draft: JobAlertDraft): {
   return { valid: true }
 }
 
+/**
+ * Checks whether a job is active and has not passed its expiration date.
+ * Guarantees inactive or delisted opportunities never trigger alerts.
+ */
+export function isJobActiveAndNotExpired(job: JobListing): boolean {
+  if (!job) return false
+  if (job.isActive === false) return false
+  if (job.expiresAt) {
+    const expiry = new Date(job.expiresAt).getTime()
+    if (!isNaN(expiry) && expiry <= Date.now()) {
+      return false
+    }
+  }
+  return true
+}
+
 export function matchesAlertCriteria(
   job: JobListing,
   criteria: JobAlertCriteria,
 ): boolean {
   if (!job) return false
+
+  // Never match inactive or expired jobs
+  if (!isJobActiveAndNotExpired(job)) {
+    return false
+  }
 
   // 1. Keyword / query match
   const q = normalizeCriterion(criteria.query)
@@ -143,6 +164,23 @@ export function matchesAlertCriteria(
   const loc = normalizeCriterion(criteria.location).toLowerCase()
   if (loc && !job.location.toLowerCase().includes(loc)) {
     return false
+  }
+
+  // 6. Skills filter (where supported)
+  if (Array.isArray(criteria.skills) && criteria.skills.length > 0) {
+    const jobSkills = (job.skills || []).map((s) => s.toLowerCase().trim())
+    const jobText = `${job.title} ${job.description || ''}`.toLowerCase()
+    const matchesSkill = criteria.skills.some((skill) => {
+      const s = skill.trim().toLowerCase()
+      if (!s) return false
+      return (
+        jobSkills.some((js) => js === s || js.includes(s) || s.includes(js)) ||
+        jobText.includes(s)
+      )
+    })
+    if (!matchesSkill) {
+      return false
+    }
   }
 
   return true

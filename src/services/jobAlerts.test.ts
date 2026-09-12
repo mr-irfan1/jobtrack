@@ -20,7 +20,8 @@ import {
   toggleAlertStatus,
   updateAlert,
 } from './jobAlertsStore.ts'
-import { evaluateJobAlerts } from './jobAlertMatchingService.ts'
+import { evaluateJobAlerts, evaluateJobAlertsFromFeed, isJobAlreadyNotified } from './jobAlertMatchingService.ts'
+import { clearJobFeedCache } from './jobFeedService.ts'
 
 // Mock in-memory localStorage for Node test runner
 const memoryStore = new Map<string, string>()
@@ -433,5 +434,246 @@ describe('Step 14: Job Alerts & Matching Opportunities', () => {
   it('30. Corrupted localStorage degrades gracefully', () => {
     mockLocalStorage.setItem(JOB_ALERTS_STORAGE_KEY, 'invalid-json{{{')
     assert.deepEqual(getAllAlerts(), [])
+  })
+
+  describe('Canonical Jobs Database & Multi-Provider Alert Evaluation', () => {
+    const CANONICAL_TEST_JOBS: JobListing[] = [
+      {
+        id: 'uuid-remotive-1',
+        source: 'Remotive',
+        sourceJobId: '1001',
+        title: 'Staff Rust Platform Engineer',
+        company: 'Cloudflare',
+        location: 'Remote (Worldwide)',
+        workplaceType: 'Remote',
+        employmentType: 'Full-time',
+        category: 'Software Development',
+        skills: ['Rust', 'Distributed Systems', 'Wasm'],
+        description: 'Lead edge runtime development.',
+        postedDate: '2026-09-12T00:00:00Z',
+        applyUrl: 'https://cloudflare.com/apply/1001',
+        canonicalUrl: 'https://cloudflare.com/apply/1001',
+        isActive: true,
+        expiresAt: null,
+      },
+      {
+        id: 'uuid-greenhouse-2',
+        source: 'Greenhouse',
+        sourceJobId: 'gh-456',
+        title: 'Kubernetes Infrastructure Architect',
+        company: 'GitLab',
+        location: 'London, UK',
+        workplaceType: 'Hybrid',
+        employmentType: 'Contract',
+        category: 'DevOps / Sysadmin',
+        skills: ['Kubernetes', 'Terraform', 'AWS'],
+        description: 'Scale multi-cloud Kubernetes clusters.',
+        postedDate: '2026-09-11T00:00:00Z',
+        applyUrl: 'https://boards.greenhouse.io/gitlab/jobs/456',
+        canonicalUrl: 'https://boards.greenhouse.io/gitlab/jobs/456',
+        isActive: true,
+        expiresAt: null,
+      },
+      {
+        id: 'uuid-adzuna-3',
+        source: 'Adzuna',
+        sourceJobId: 'adzuna-789',
+        title: 'Senior Product Designer',
+        company: 'Figma',
+        location: 'San Francisco, CA',
+        workplaceType: 'On-site',
+        employmentType: 'Part-time',
+        category: 'Design',
+        skills: ['Figma', 'Design Systems'],
+        description: 'Design accessible collaborative interfaces.',
+        postedDate: '2026-09-10T00:00:00Z',
+        applyUrl: 'https://adzuna.com/land/ad/789',
+        canonicalUrl: 'https://adzuna.com/land/ad/789',
+        isActive: true,
+        expiresAt: null,
+      },
+    ]
+
+    it('31. Evaluates canonical jobs across query, workplace, type, category, and location', () => {
+      const alert: JobAlert = {
+        id: 'al-k8s',
+        name: 'DevOps Alert',
+        criteria: {
+          query: 'Kubernetes',
+          workplace: 'Hybrid',
+          employmentType: 'Contract',
+          category: 'DevOps',
+          location: 'London',
+        },
+        frequency: 'daily',
+        status: 'active',
+        createdAt: '2026-09-12T00:00:00Z',
+        updatedAt: '2026-09-12T00:00:00Z',
+        notifiedJobIds: [],
+      }
+
+      const results = evaluateJobAlerts(CANONICAL_TEST_JOBS, [alert])
+      assert.equal(results.length, 1)
+      assert.equal(results[0].matchedJobs.length, 1)
+      assert.equal(results[0].matchedJobs[0].id, 'uuid-greenhouse-2')
+      assert.equal(results[0].newMatches.length, 1)
+      assert.ok(results[0].notification)
+      assert.equal(results[0].notification?.title, 'New job matches "DevOps Alert"')
+    })
+
+    it('32. Respects explicit skills criteria on canonical jobs', () => {
+      const alert: JobAlert = {
+        id: 'al-skills',
+        name: 'Rust Wasm Alert',
+        criteria: {
+          skills: ['Wasm'],
+        },
+        frequency: 'daily',
+        status: 'active',
+        createdAt: '2026-09-12T00:00:00Z',
+        updatedAt: '2026-09-12T00:00:00Z',
+        notifiedJobIds: [],
+      }
+
+      const results = evaluateJobAlerts(CANONICAL_TEST_JOBS, [alert])
+      assert.equal(results[0].matchedJobs.length, 1)
+      assert.equal(results[0].matchedJobs[0].id, 'uuid-remotive-1')
+      assert.equal(results[0].matchedJobs[0].company, 'Cloudflare')
+    })
+
+    it('33. Avoids repeatedly notifying the same job across UUID, sourceJobId, and canonicalUrl', () => {
+      const alert: JobAlert = {
+        id: 'al-dedupe',
+        name: 'Rust Alert',
+        criteria: { query: 'Rust' },
+        frequency: 'daily',
+        status: 'active',
+        createdAt: '2026-09-12T00:00:00Z',
+        updatedAt: '2026-09-12T00:00:00Z',
+        notifiedJobIds: ['1001'], // Previously notified using provider sourceJobId
+      }
+
+      const results = evaluateJobAlerts(CANONICAL_TEST_JOBS, [alert])
+      // Matched the criteria, but newMatches is 0 because 1001 was already notified!
+      assert.equal(results[0].matchedJobs.length, 1)
+      assert.equal(results[0].newMatches.length, 0)
+      assert.equal(results[0].notification, undefined)
+
+      // Test notification check helper directly
+      const notifiedSet = new Set(['https://cloudflare.com/apply/1001'])
+      assert.equal(isJobAlreadyNotified(CANONICAL_TEST_JOBS[0], notifiedSet), true)
+    })
+
+    it('34. Handles job IDs consistently across providers and records multi-identifier history', () => {
+      const alert = saveAlert({ criteria: { query: 'Kubernetes' } }).alert!
+
+      // Evaluate and record notification
+      const results = evaluateJobAlerts(CANONICAL_TEST_JOBS, [alert], { recordNotified: true })
+      assert.equal(results[0].newMatches.length, 1)
+
+      const updated = getAlerts().find((a) => a.id === alert.id)!
+      // Records UUID, sourceJobId, provider prefix, and canonicalUrl
+      assert.ok(updated.notifiedJobIds.includes('uuid-greenhouse-2'))
+      assert.ok(updated.notifiedJobIds.includes('gh-456'))
+      assert.ok(updated.notifiedJobIds.includes('greenhouse::gh-456'))
+      assert.ok(updated.notifiedJobIds.includes('https://boards.greenhouse.io/gitlab/jobs/456'))
+
+      // Subsequent evaluation produces zero new matches
+      const reResults = evaluateJobAlerts(CANONICAL_TEST_JOBS, [updated])
+      assert.equal(reResults[0].newMatches.length, 0)
+    })
+
+    it('35. Do NOT notify on inactive jobs (isActive: false)', () => {
+      const inactiveJob: JobListing = {
+        ...CANONICAL_TEST_JOBS[0],
+        id: 'inactive-rust-job',
+        title: 'Senior Rust Engineer',
+        isActive: false,
+      }
+
+      const alert: JobAlert = {
+        id: 'al-active-only',
+        name: 'Rust Only',
+        criteria: { query: 'Rust' },
+        frequency: 'daily',
+        status: 'active',
+        createdAt: '2026-09-12T00:00:00Z',
+        updatedAt: '2026-09-12T00:00:00Z',
+        notifiedJobIds: [],
+      }
+
+      const results = evaluateJobAlerts([inactiveJob], [alert])
+      assert.equal(results[0].matchedJobs.length, 0)
+      assert.equal(results[0].newMatches.length, 0)
+    })
+
+    it('36. Do NOT notify on expired jobs (expiresAt in past)', () => {
+      const expiredJob: JobListing = {
+        ...CANONICAL_TEST_JOBS[0],
+        id: 'expired-rust-job',
+        title: 'Senior Rust Engineer',
+        isActive: true,
+        expiresAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // expired yesterday
+      }
+
+      const alert: JobAlert = {
+        id: 'al-fresh-only',
+        name: 'Rust Only',
+        criteria: { query: 'Rust' },
+        frequency: 'daily',
+        status: 'active',
+        createdAt: '2026-09-12T00:00:00Z',
+        updatedAt: '2026-09-12T00:00:00Z',
+        notifiedJobIds: [],
+      }
+
+      const results = evaluateJobAlerts([expiredJob], [alert])
+      assert.equal(results[0].matchedJobs.length, 0)
+      assert.equal(results[0].newMatches.length, 0)
+    })
+
+    it('37. Matches and notifies jobs with valid future expiration date', () => {
+      const validFutureJob: JobListing = {
+        ...CANONICAL_TEST_JOBS[0],
+        id: 'future-exp-rust-job',
+        title: 'Senior Rust Engineer',
+        isActive: true,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // expires in 7 days
+      }
+
+      const alert: JobAlert = {
+        id: 'al-valid-future',
+        name: 'Rust Only',
+        criteria: { query: 'Rust' },
+        frequency: 'daily',
+        status: 'active',
+        createdAt: '2026-09-12T00:00:00Z',
+        updatedAt: '2026-09-12T00:00:00Z',
+        notifiedJobIds: [],
+      }
+
+      const results = evaluateJobAlerts([validFutureJob], [alert])
+      assert.equal(results[0].matchedJobs.length, 1)
+      assert.equal(results[0].newMatches.length, 1)
+    })
+
+    it('38. evaluateJobAlertsFromFeed loads jobs and evaluates active alerts', async () => {
+      clearJobFeedCache()
+      const alert: JobAlert = {
+        id: 'al-from-feed',
+        name: 'Frontend Alert',
+        criteria: { query: 'Frontend' },
+        frequency: 'daily',
+        status: 'active',
+        createdAt: '2026-09-12T00:00:00Z',
+        updatedAt: '2026-09-12T00:00:00Z',
+        notifiedJobIds: [],
+      }
+
+      const results = await evaluateJobAlertsFromFeed([alert])
+      assert.ok(Array.isArray(results))
+      assert.equal(results.length, 1)
+      assert.equal(results[0].alert.id, 'al-from-feed')
+    })
   })
 })

@@ -93,3 +93,6 @@ export async function requireUserAuth(
     }
   }
 }
+
+export { requireServerAuth, type ServerAuthResult } from './serverAuth.ts'
+
