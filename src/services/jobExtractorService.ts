@@ -76,6 +76,11 @@ export function isPrivateOrLocalhostUrl(urlStr: string): boolean {
       return true
     }
 
+    // Only permit standard HTTP/HTTPS ports to prevent port scanning
+    if (parsed.port && parsed.port !== '80' && parsed.port !== '443') {
+      return true
+    }
+
     const hostname = parsed.hostname.toLowerCase()
 
     if (
@@ -83,9 +88,29 @@ export function isPrivateOrLocalhostUrl(urlStr: string): boolean {
       hostname === '127.0.0.1' ||
       hostname === '0.0.0.0' ||
       hostname === '::1' ||
+      hostname === '[::1]' ||
+      hostname === '[::]' ||
       hostname.endsWith('.local') ||
       hostname.endsWith('.localhost') ||
-      hostname.endsWith('.internal')
+      hostname.endsWith('.internal') ||
+      hostname.endsWith('.corp') ||
+      hostname.endsWith('.lan') ||
+      hostname === 'metadata.google.internal' ||
+      hostname.includes('169.254.169.254')
+    ) {
+      return true
+    }
+
+    // Check IPv6 private / link-local / unique-local / mapped ranges
+    if (
+      hostname.startsWith('fe80:') ||
+      hostname.startsWith('fc00:') ||
+      hostname.startsWith('fd00:') ||
+      hostname.startsWith('::ffff:') ||
+      hostname.includes('[fe80:') ||
+      hostname.includes('[fc00:') ||
+      hostname.includes('[fd00:') ||
+      hostname.includes('[::ffff:')
     ) {
       return true
     }

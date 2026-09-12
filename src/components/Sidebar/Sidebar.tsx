@@ -15,14 +15,13 @@ interface SidebarProps {
   onClose: () => void
 }
 
-/** Nav link classes; layout tightens to a centered icon when collapsed. */
+/** Nav link classes; soft pill container with generous spacing matching Google platform design. */
 function getNavLinkClass(collapsed: boolean, isActive: boolean): string {
-  const base = `relative flex items-center rounded-xl text-sm font-medium transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-    collapsed ? 'justify-center px-2 py-2.5' : 'gap-3 px-3 py-2.5'
-  }`
+  const base = `group relative flex items-center rounded-full text-sm transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring ${collapsed ? 'justify-center h-10 w-10 mx-auto' : 'gap-3.5 px-4 py-2.5 mx-2'
+    }`
   return isActive
-    ? `${base} bg-primary/10 font-semibold text-primary`
-    : `${base} text-muted-foreground hover:bg-muted hover:text-foreground`
+    ? `${base} bg-primary/12 font-medium text-primary shadow-2xs`
+    : `${base} font-normal text-muted-foreground hover:bg-muted/60 hover:text-foreground`
 }
 
 /**
@@ -48,45 +47,62 @@ function SidebarBody({
   const { badge } = useNotifications()
 
   return (
-    <div className="flex h-full flex-col border-r border-border bg-surface text-foreground">
-      <div
-        className={`flex h-16 shrink-0 items-center border-b border-border ${
-          collapsed ? 'justify-center px-2' : 'justify-between px-4'
-        }`}
-      >
-        <Link
-          to="/"
-          onClick={onNavigate}
-          aria-label="JobTrack home"
-          className="flex items-center gap-2.5 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          <img
-            src="/assets/logo.png"
-            alt=""
-            className="h-9 w-9 shrink-0 rounded-xl object-cover"
-          />
-          {collapsed ? null : (
-            <span className="text-lg font-bold tracking-tight text-foreground">
-              JobTrack
-            </span>
-          )}
-        </Link>
-        {showClose ? (
+    <div className="flex h-full flex-col bg-white dark:bg-[#111315] text-foreground select-none">
+      {/* MOBILE DRAWER HEADER (MOBILE ONLY) */}
+      {showClose ? (
+        <div className="flex h-16 shrink-0 items-center justify-between px-4">
+          <Link
+            to="/"
+            onClick={onNavigate}
+            aria-label="JobTrack home"
+            className="flex items-center gap-2.5 text-base font-bold tracking-tight text-foreground transition-opacity hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <img
+              src="/assets/logo.png"
+              alt=""
+              className="h-8 w-8 shrink-0 rounded-xl object-cover shadow-xs"
+            />
+            <span>JobTrack</span>
+          </Link>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close navigation"
-            className="inline-flex items-center justify-center rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="inline-flex items-center justify-center rounded-xl p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <CloseIcon className="h-5 w-5" />
           </button>
-        ) : null}
-      </div>
+        </div>
+      ) : null}
 
-      <nav aria-label="Primary" className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
+      {/* DESKTOP SIDEBAR COLLAPSE BUTTON AT TOP */}
+      {!showClose && onToggleCollapse ? (
+        <div
+          className={`shrink-0 pt-3 pb-2 px-3.5 ${
+            collapsed ? 'flex justify-center' : 'flex justify-start'
+          }`}
+        >
+          <button
+            type="button"
+            onClick={onToggleCollapse}
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <CollapseIcon
+              className={`h-4 w-4 shrink-0 transition-transform duration-200 ${
+                collapsed ? 'rotate-180' : ''
+              }`}
+            />
+          </button>
+        </div>
+      ) : null}
+
+      {/* PRIMARY NAVIGATION ITEMS */}
+      <nav aria-label="Primary" className="flex-1 space-y-1.5 overflow-y-auto px-2 py-4">
         {collapsed ? null : (
-          <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Menu
+          <p className="px-4 pb-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground/70">
+            Navigation
           </p>
         )}
         {NAV_ITEMS.map((item) => {
@@ -107,24 +123,15 @@ function SidebarBody({
               aria-label={collapsed ? item.label : undefined}
               className={getNavLinkClass(collapsed, active)}
             >
-              {active ? (
-                <span
-                  aria-hidden="true"
-                  className={`absolute left-0 top-1/2 -translate-y-1/2 rounded-r-full bg-primary ${
-                    collapsed ? 'h-6 w-0.5' : 'h-5 w-1'
-                  }`}
-                />
-              ) : null}
               <Icon className="h-5 w-5 shrink-0" />
               {collapsed ? null : <span className="truncate">{item.label}</span>}
               {item.to === '/notifications' && badge ? (
                 <span
                   aria-hidden="true"
-                  className={`inline-flex items-center justify-center rounded-full bg-primary font-bold text-primary-foreground ${
-                    collapsed
+                  className={`inline-flex items-center justify-center rounded-full bg-primary font-bold text-primary-foreground ${collapsed
                       ? 'absolute -right-0.5 -top-0.5 h-4 min-w-4 px-1 text-[10px]'
                       : 'ml-auto h-5 min-w-5 px-1.5 text-xs'
-                  }`}
+                    }`}
                 >
                   {badge}
                 </span>
@@ -133,25 +140,6 @@ function SidebarBody({
           )
         })}
       </nav>
-
-      {onToggleCollapse ? (
-        <div className="shrink-0 border-t border-border p-3">
-          <button
-            type="button"
-            onClick={onToggleCollapse}
-            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            className={`flex w-full items-center rounded-lg text-sm font-medium text-muted-foreground transition-colors duration-150 hover:bg-muted hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-              collapsed ? 'justify-center px-2 py-2' : 'gap-3 px-3 py-2'
-            }`}
-          >
-            <CollapseIcon
-              className={`h-5 w-5 shrink-0 transition-transform duration-200 ${collapsed ? 'rotate-180' : ''}`}
-            />
-            {collapsed ? null : <span>Collapse</span>}
-          </button>
-        </div>
-      ) : null}
 
       <SidebarUser collapsed={collapsed} />
     </div>
@@ -173,9 +161,8 @@ function Sidebar({
   return (
     <>
       <aside
-        className={`hidden shrink-0 transition-[width] duration-200 ease-in-out lg:block ${
-          collapsed ? 'w-16' : 'w-64'
-        }`}
+        className={`hidden shrink-0 transition-[width] duration-200 ease-in-out lg:block ${collapsed ? 'w-16' : 'w-64'
+          }`}
       >
         <SidebarBody collapsed={collapsed} onToggleCollapse={onToggleCollapse} />
       </aside>
@@ -183,16 +170,14 @@ function Sidebar({
       <div
         aria-hidden="true"
         onClick={onClose}
-        className={`fixed inset-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${
-          mobileOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
-        }`}
+        className={`fixed inset-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity duration-200 lg:hidden ${mobileOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
+          }`}
       />
       <aside
         aria-label="Sidebar"
         aria-hidden={!mobileOpen}
-        className={`fixed inset-y-0 left-0 z-50 w-64 transition-transform duration-200 ease-in-out lg:hidden ${
-          mobileOpen ? 'translate-x-0' : 'pointer-events-none -translate-x-full'
-        }`}
+        className={`fixed inset-y-0 left-0 z-50 w-64 shadow-2xl transition-transform duration-200 ease-in-out lg:hidden ${mobileOpen ? 'translate-x-0' : 'pointer-events-none -translate-x-full'
+          }`}
       >
         <SidebarBody
           collapsed={false}

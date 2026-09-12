@@ -6,6 +6,7 @@ import {
   getApplications,
   updateApplication,
 } from './ApplicationsModel'
+import { setApplicationResume } from '../../services/resumeStore'
 import { ALL_STATUSES, filterApplications } from './applicationFilters'
 import type { StatusFilter } from './applicationFilters'
 
@@ -63,6 +64,9 @@ export function useApplicationsViewModel(): ApplicationsViewModel {
     async (draft: ApplicationDraft): Promise<JobApplication> => {
       try {
         const created = await createApplication(draft)
+        if (draft.resumeId) {
+          setApplicationResume(created.id, draft.resumeId)
+        }
         setApplications((current) => [...current, created])
         setError(null)
         return created
@@ -79,6 +83,9 @@ export function useApplicationsViewModel(): ApplicationsViewModel {
       // The repository returns the stored row (server-normalized times +
       // updated_at); reflect that authoritative copy in the list.
       const updated = await updateApplication(application)
+      if (application.resumeId !== undefined) {
+        setApplicationResume(application.id, application.resumeId || null)
+      }
       setApplications((current) =>
         current.map((existing) =>
           existing.id === updated.id ? updated : existing,
@@ -93,6 +100,7 @@ export function useApplicationsViewModel(): ApplicationsViewModel {
   const removeApplication = useCallback(async (id: string) => {
     try {
       await deleteApplication(id)
+      setApplicationResume(id, null)
       setApplications((current) =>
         current.filter((existing) => existing.id !== id),
       )

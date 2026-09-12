@@ -51,7 +51,7 @@ function SettingsView() {
         <div className="lg:col-span-3">
           <nav
             aria-label="Settings navigation"
-            className="flex gap-2 overflow-x-auto border-b border-border pb-4 scrollbar-none lg:flex-col lg:border-b-0 lg:pb-0"
+            className="flex gap-2 overflow-x-auto border-b border-border pb-4 no-scrollbar lg:flex-col lg:border-b-0 lg:pb-0"
           >
             {SETTINGS_TABS.map((tab) => {
               const isActive = activeTab === tab.id

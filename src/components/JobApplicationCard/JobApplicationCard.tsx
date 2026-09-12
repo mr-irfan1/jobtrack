@@ -92,7 +92,7 @@ function JobApplicationCard({
         <p className="mt-3 line-clamp-3 text-sm text-muted-foreground">{notes}</p>
       ) : null}
 
-      <div className="mt-auto flex items-center justify-between gap-3 border-t border-border pt-4">
+      <div className="mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-border pt-4">
         <select
           value={status}
           onChange={(event) =>
@@ -107,7 +107,14 @@ function JobApplicationCard({
             </option>
           ))}
         </select>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-1.5">
+          <Link
+            to={`/follow-ups?applicationId=${id}`}
+            aria-label={`Schedule follow-up for ${company}`}
+            className={`${buttonBase} border border-border bg-surface text-foreground hover:bg-muted focus-visible:ring-ring`}
+          >
+            Follow-up
+          </Link>
           <button
             type="button"
             onClick={() => onEdit(application)}

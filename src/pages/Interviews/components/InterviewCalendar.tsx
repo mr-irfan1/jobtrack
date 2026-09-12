@@ -83,8 +83,8 @@ function InterviewCalendar({
   return (
     <div className="flex flex-col rounded-2xl border border-border bg-surface shadow-sm">
       {/* CALENDAR TOOLBAR */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4">
-        <h2 className="text-lg font-bold text-foreground">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-3 sm:px-5 py-3 sm:py-4">
+        <h2 className="text-base sm:text-lg font-bold text-foreground">
           {formatMonthYear(currentYear, currentMonth)}
         </h2>
 
@@ -92,7 +92,7 @@ function InterviewCalendar({
           <button
             type="button"
             onClick={handleToday}
-            className="rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="rounded-lg border border-border bg-surface px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             Today
           </button>
@@ -118,9 +118,9 @@ function InterviewCalendar({
       </div>
 
       {/* WEEK DAY HEADERS */}
-      <div className="grid grid-cols-7 border-b border-border bg-muted/40 text-center text-xs font-bold text-muted-foreground">
+      <div className="grid grid-cols-7 border-b border-border bg-muted/40 text-center text-[10px] sm:text-xs font-bold text-muted-foreground">
         {WEEK_DAYS.map((day) => (
-          <div key={day} className="py-2.5">
+          <div key={day} className="py-2 sm:py-2.5">
             {day}
           </div>
         ))}
@@ -136,14 +136,14 @@ function InterviewCalendar({
             <div
               key={cell.dateISO}
               onClick={() => onSelectDate(cell.dateISO)}
-              className={`group flex min-h-[90px] flex-col justify-between bg-surface p-2 text-left transition-colors cursor-pointer hover:bg-muted/40 ${
+              className={`group flex min-h-[65px] sm:min-h-[90px] flex-col justify-between bg-surface p-1 sm:p-2 text-left transition-colors cursor-pointer hover:bg-muted/40 ${
                 !cell.isCurrentMonth ? 'opacity-40 bg-muted/20' : ''
               } ${isSelected ? 'ring-2 ring-primary ring-inset z-10' : ''}`}
             >
               {/* CELL HEADER */}
               <div className="flex items-center justify-between">
                 <span
-                  className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-xs ${
+                  className={`inline-flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center rounded-full text-[11px] sm:text-xs ${
                     cell.isToday
                       ? 'bg-primary font-bold text-primary-foreground shadow-xs'
                       : 'font-medium text-foreground'
@@ -162,11 +162,11 @@ function InterviewCalendar({
                 {dateApps.slice(0, 2).map((app) => (
                   <div
                     key={app.id}
-                    className="truncate rounded bg-primary/10 px-1.5 py-0.5 text-[11px] font-semibold text-primary transition-colors group-hover:bg-primary/20"
+                    className="truncate rounded bg-primary/10 px-1 sm:px-1.5 py-0.5 text-[10px] sm:text-[11px] font-semibold text-primary transition-colors group-hover:bg-primary/20"
                   >
                     <span className="truncate">{app.company}</span>
                     {app.interviewTime ? (
-                      <span className="ml-1 font-normal opacity-80">
+                      <span className="ml-1 font-normal opacity-80 hidden sm:inline">
                         {formatTime12(app.interviewTime)}
                       </span>
                     ) : null}
@@ -174,7 +174,7 @@ function InterviewCalendar({
                 ))}
 
                 {dateApps.length > 2 ? (
-                  <div className="text-[10px] font-semibold text-muted-foreground">
+                  <div className="text-[9px] sm:text-[10px] font-semibold text-muted-foreground">
                     +{dateApps.length - 2} more
                   </div>
                 ) : null}

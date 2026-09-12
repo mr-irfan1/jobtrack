@@ -1,15 +1,13 @@
 import { LANDING_SEO } from '../../seo/seo'
 import { useDocumentMeta } from '../../seo/useDocumentMeta'
-import FeaturesSection from './FeaturesSection'
+import AIJobIntelligence from './AIJobIntelligence'
 import FinalCTA from './FinalCTA'
 import HeroSection from './HeroSection'
 import HowItWorks from './HowItWorks'
-import InterviewSection from './InterviewSection'
+import JobDiscovery from './JobDiscovery'
 import LandingFooter from './LandingFooter'
 import LandingNavbar from './LandingNavbar'
-import PipelineSection from './PipelineSection'
-import ProductPreview from './ProductPreview'
-import ValueProposition from './ValueProposition'
+import WorkflowSection from './WorkflowSection'
 import './landing.css'
 
 /**
@@ -22,6 +20,9 @@ import './landing.css'
  * Route-level SEO (title, description, canonical) is applied imperatively via
  * useDocumentMeta so the homepage keeps its intended metadata; the static
  * JSON-LD and Open Graph tags in index.html are left untouched.
+ *
+ * Section order:
+ *   Hero → How It Works → AI Intelligence → Job Discovery → Workflow → CTA
  */
 function LandingView() {
   useDocumentMeta(LANDING_SEO)
@@ -41,12 +42,10 @@ function LandingView() {
 
       <main id="main">
         <HeroSection />
-        <ProductPreview />
-        <ValueProposition />
-        <PipelineSection />
-        <FeaturesSection />
-        <InterviewSection />
         <HowItWorks />
+        <AIJobIntelligence />
+        <JobDiscovery />
+        <WorkflowSection />
         <FinalCTA />
       </main>
 

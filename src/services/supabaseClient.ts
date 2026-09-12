@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { readSupabaseConfig } from './supabaseConfig'
+import { readSupabaseConfig } from './supabaseConfig.ts'
 
 /**
  * The single Supabase client for the entire app.
@@ -13,9 +13,12 @@ import { readSupabaseConfig } from './supabaseConfig'
  * nothing else. Auth logic (sign in/up/out, session handling) belongs in a
  * future auth service that consumes this client — not here.
  */
+const nodeEnv = (globalThis as unknown as { process?: { env?: Record<string, string> } }).process?.env || {}
+const metaEnv = typeof import.meta !== 'undefined' && import.meta ? import.meta.env : undefined
+
 const { url, anonKey } = readSupabaseConfig({
-  VITE_SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL,
-  VITE_SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY,
+  VITE_SUPABASE_URL: metaEnv?.VITE_SUPABASE_URL || nodeEnv.VITE_SUPABASE_URL || 'https://placeholder.supabase.co',
+  VITE_SUPABASE_ANON_KEY: metaEnv?.VITE_SUPABASE_ANON_KEY || nodeEnv.VITE_SUPABASE_ANON_KEY || 'placeholder-anon-key',
 })
 
 export const supabase = createClient(url, anonKey, {

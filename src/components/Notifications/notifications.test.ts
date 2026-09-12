@@ -3,6 +3,7 @@ import { test } from 'node:test'
 import type { JobApplication } from '../../types/application.ts'
 import type { InterviewNotification, NotificationContext } from './notifications.ts'
 import {
+  buildComprehensiveNotifications,
   buildNotifications,
   categorize,
   countUnread,
@@ -341,4 +342,66 @@ test('read state does not change ordering', () => {
   })
   const read = buildNotifications(applications, readContext)
   assert.deepEqual(idsOf(read), idsOf(unread))
+})
+
+test('buildComprehensiveNotifications creates FOLLOW_UP_DUE notification for follow-ups today', () => {
+  const application = makeApplication({ id: 'app-99', company: 'Netflix', jobTitle: 'Senior UI Engineer' })
+  const followUp = {
+    id: 'fu-due',
+    applicationId: 'app-99',
+    scheduledDate: TODAY,
+    scheduledTime: '11:00',
+    scheduledFor: `${TODAY}T11:00:00`,
+    status: 'pending' as const,
+    createdAt: '2026-08-20T10:00:00Z',
+    note: 'Inquire about feedback',
+  }
+
+  const list = buildComprehensiveNotifications([application], makeContext(), [followUp])
+  const dueNotification = list.find((n) => n.id === 'fu-due::due')
+
+  assert.ok(dueNotification)
+  assert.equal(dueNotification.category, 'FOLLOW_UP_DUE')
+  assert.equal(dueNotification.title, 'Follow-up due today: Netflix')
+  assert.match(dueNotification.description || '', /Inquire about feedback/)
+  assert.equal(dueNotification.read, false)
+})
+
+test('buildComprehensiveNotifications creates FOLLOW_UP_OVERDUE notification for past pending follow-ups', () => {
+  const application = makeApplication({ id: 'app-99', company: 'Netflix' })
+  const followUp = {
+    id: 'fu-overdue',
+    applicationId: 'app-99',
+    scheduledDate: '2026-08-25', // before TODAY (2026-08-27)
+    scheduledFor: '2026-08-25T09:00:00',
+    status: 'pending' as const,
+    createdAt: '2026-08-20T10:00:00Z',
+  }
+
+  const list = buildComprehensiveNotifications([application], makeContext(), [followUp])
+  const overdueNotification = list.find((n) => n.id === 'fu-overdue::overdue')
+
+  assert.ok(overdueNotification)
+  assert.equal(overdueNotification.category, 'FOLLOW_UP_OVERDUE')
+  assert.equal(dueNotificationTitle(overdueNotification.title), 'Follow-up overdue: Netflix')
+})
+
+function dueNotificationTitle(title: string) {
+  return title
+}
+
+test('buildComprehensiveNotifications ignores completed follow-ups', () => {
+  const application = makeApplication({ id: 'app-99' })
+  const completedFollowUp = {
+    id: 'fu-completed',
+    applicationId: 'app-99',
+    scheduledDate: TODAY,
+    scheduledFor: `${TODAY}T11:00:00`,
+    status: 'completed' as const,
+    createdAt: '2026-08-20T10:00:00Z',
+  }
+
+  const list = buildComprehensiveNotifications([application], makeContext(), [completedFollowUp])
+  const notification = list.find((n) => n.id.startsWith('fu-completed'))
+  assert.equal(notification, undefined)
 })

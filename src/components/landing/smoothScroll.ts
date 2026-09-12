@@ -23,8 +23,8 @@ export function scrollToSection(id: string) {
 
 /** The in-page sections linked from the navbar and footer, in document order. */
 export const NAV_SECTIONS = [
-  { id: 'features', label: 'Features' },
-  { id: 'pipeline', label: 'Pipeline' },
-  { id: 'interviews', label: 'Interviews' },
   { id: 'how-it-works', label: 'How it works' },
+  { id: 'ai-intelligence', label: 'AI Intelligence' },
+  { id: 'discovery', label: 'Discovery' },
+  { id: 'workflow', label: 'Workflow' },
 ] as const

@@ -313,10 +313,15 @@ function SecuritySettingsSection() {
 
       {/* DELETE CONFIRMATION MODAL */}
       {isDeleteModalOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-md rounded-2xl border border-border bg-surface p-6 shadow-xl space-y-5">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="delete-account-modal-title"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-3 sm:p-4 backdrop-blur-xs"
+        >
+          <div className="w-full max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-2xl border border-border bg-surface p-5 sm:p-6 shadow-xl space-y-5">
             <div className="flex items-center justify-between border-b border-border pb-3">
-              <h3 className="text-base font-bold text-danger-fg">
+              <h3 id="delete-account-modal-title" className="text-base font-bold text-danger-fg">
                 Delete your account?
               </h3>
               <button

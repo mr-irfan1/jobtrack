@@ -1,71 +1,71 @@
 import { Link } from 'react-router-dom'
-import Panel from '../../../components/Panel/Panel'
 import {
   ApplicationsIcon,
-  ArrowRightIcon,
-  PlusIcon,
+  BookmarkIcon,
+  BriefcaseIcon,
+  ClockArrowIcon,
+  DocumentTextIcon,
 } from '../../../components/icons/Icons'
 import type { ReactNode } from 'react'
 
-interface QuickAction {
+interface QuickActionItem {
   to: string
   label: string
-  description: string
   icon: ReactNode
-  iconClassName: string
 }
 
-// Both actions reuse existing routes only — no new routes or behavior.
-const QUICK_ACTIONS: QuickAction[] = [
+const SHORTCUT_LINKS: QuickActionItem[] = [
   {
-    to: '/applications',
-    label: 'Add Application',
-    description: 'Track a new job you’ve applied to.',
-    icon: <PlusIcon className="h-5 w-5" />,
-    iconClassName: 'bg-primary text-primary-foreground',
+    to: '/jobs',
+    label: 'Find Jobs',
+    icon: <BriefcaseIcon className="h-4 w-4" />,
+  },
+  {
+    to: '/saved-jobs',
+    label: 'Saved Jobs',
+    icon: <BookmarkIcon className="h-4 w-4" />,
   },
   {
     to: '/applications',
-    label: 'View Applications',
-    description: 'Search, filter and manage your list.',
-    icon: <ApplicationsIcon className="h-5 w-5" />,
-    iconClassName: 'bg-muted text-muted-foreground',
+    label: 'Applications',
+    icon: <ApplicationsIcon className="h-4 w-4" />,
+  },
+  {
+    to: '/resumes',
+    label: 'Resume Center',
+    icon: <DocumentTextIcon className="h-4 w-4" />,
+  },
+  {
+    to: '/follow-ups',
+    label: 'Follow-ups',
+    icon: <ClockArrowIcon className="h-4 w-4" />,
   },
 ]
 
 /**
- * Quick actions: shortcuts into the existing application flows. Presentational
- * only — each tile is a react-router Link to an existing route, adding no new
- * behavior.
+ * Lightweight Quick Actions shortcut row matching Google Developer Program navigation feel.
+ * Reduces visual noise; avoids bulky metric-style tiles.
  */
 function QuickActions() {
   return (
-    <Panel title="Quick Actions" titleId="quick-actions-heading">
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        {QUICK_ACTIONS.map((action) => (
-          <Link
-            key={action.label}
-            to={action.to}
-            className="group flex items-center gap-3 rounded-xl border border-border bg-surface p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            <span
-              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${action.iconClassName}`}
-            >
-              {action.icon}
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block text-sm font-semibold text-foreground">
-                {action.label}
-              </span>
-              <span className="block truncate text-xs text-muted-foreground">
-                {action.description}
-              </span>
-            </span>
-            <ArrowRightIcon className="h-4 w-4 shrink-0 text-muted-foreground/60 transition-all duration-200 group-hover:translate-x-0.5 group-hover:text-muted-foreground" />
-          </Link>
-        ))}
-      </div>
-    </Panel>
+    <nav
+      aria-label="Quick Shortcuts"
+      className="flex flex-wrap items-center gap-2 py-1"
+    >
+      <span className="text-xs font-medium text-muted-foreground mr-1">
+        Shortcuts:
+      </span>
+      {SHORTCUT_LINKS.map((item) => (
+        <Link
+          key={item.to}
+          to={item.to}
+          className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-surface dark:bg-surface-elevated/40 px-3.5 py-1.5 text-xs font-medium text-muted-foreground hover:border-primary/40 hover:bg-muted/60 hover:text-foreground transition-all"
+        >
+          <span className="text-muted-foreground/80">{item.icon}</span>
+          <span>{item.label}</span>
+        </Link>
+      ))}
+    </nav>
   )
 }
 

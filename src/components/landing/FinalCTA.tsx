@@ -18,18 +18,19 @@ function FinalCTA() {
           />
           <div className="relative">
             <h2 className="mx-auto max-w-3xl text-4xl font-extrabold leading-[1.05] tracking-tight text-[var(--lp-cream)] sm:text-6xl">
-              Take control of your{' '}
+              Start your{' '}
               <span className="lp-serif text-[var(--lp-cream-2)]">
                 job search.
               </span>
             </h2>
             <p className="mx-auto mt-6 max-w-xl text-base text-[var(--lp-muted)] sm:text-lg">
-              One place for every application, interview, and opportunity. Start
-              organizing today.
+              AI-powered matching, intelligent discovery, and a complete
+              workspace — everything you need to land your next opportunity.
             </p>
+
             <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Link to="/signup" className="lp-btn lp-btn-accent">
-                Start tracking
+                Start Your Job Search
                 <ArrowRightIcon className="lp-arrow h-4 w-4" />
               </Link>
               <Link to="/login" className="lp-btn lp-btn-ghost">

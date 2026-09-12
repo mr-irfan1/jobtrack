@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   ApplicationsIcon,
+  BellAlertIcon,
   BellIcon,
   CalendarIcon,
   CheckIcon,
@@ -12,7 +13,7 @@ import {
 import type { JobTrackNotification } from '../../components/Notifications/notifications'
 import { useNotifications } from '../../components/Notifications/useNotifications'
 
-type FilterCategory = 'all' | 'unread' | 'application' | 'interview' | 'system'
+type FilterCategory = 'all' | 'unread' | 'application' | 'interview' | 'job_alert' | 'system'
 
 function NotificationsView() {
   const {
@@ -31,12 +32,14 @@ function NotificationsView() {
   const interviewCount = notifications.filter(
     (n) => n.type === 'interview',
   ).length
+  const alertCount = notifications.filter((n) => n.type === 'job_alert').length
   const systemCount = notifications.filter((n) => n.type === 'system').length
 
   const displayedNotifications = notifications.filter((n) => {
     if (filter === 'unread') return !n.read
     if (filter === 'application') return n.type === 'application'
     if (filter === 'interview') return n.type === 'interview'
+    if (filter === 'job_alert') return n.type === 'job_alert'
     if (filter === 'system') return n.type === 'system'
     return true
   })
@@ -77,7 +80,7 @@ function NotificationsView() {
       {/* FILTER TABS ROW */}
       <nav
         aria-label="Notification categories"
-        className="mb-6 flex items-center gap-1.5 overflow-x-auto border-b border-border pb-4 scrollbar-none"
+        className="mb-6 flex items-center gap-1.5 overflow-x-auto border-b border-border pb-4 no-scrollbar"
       >
         <button
           type="button"
@@ -123,6 +126,19 @@ function NotificationsView() {
         >
           Interviews ({interviewCount})
         </button>
+        {alertCount > 0 ? (
+          <button
+            type="button"
+            onClick={() => setFilter('job_alert')}
+            className={`shrink-0 rounded-xl px-3.5 py-1.5 text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+              filter === 'job_alert'
+                ? 'bg-primary text-primary-foreground shadow-xs'
+                : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+            }`}
+          >
+            Job Alerts ({alertCount})
+          </button>
+        ) : null}
         <button
           type="button"
           onClick={() => setFilter('system')}
@@ -146,7 +162,7 @@ function NotificationsView() {
             No notifications yet
           </h2>
           <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
-            Updates about your applications and interviews will appear here.
+            Updates about your applications, interviews, and job alerts will appear here.
           </p>
           <div className="mt-6 flex justify-center">
             <Link
@@ -161,13 +177,16 @@ function NotificationsView() {
         <ul className="space-y-3" aria-label="Notifications list">
           {displayedNotifications.map((notification) => {
             const Icon =
-              notification.type === 'application'
-                ? ApplicationsIcon
-                : notification.category === 'TODAY_INTERVIEW'
-                  ? ClockIcon
-                  : notification.category === 'UPCOMING_INTERVIEW'
-                    ? CalendarIcon
-                    : BellIcon
+              notification.type === 'job_alert' ||
+              notification.category === 'JOB_ALERT_MATCH'
+                ? BellAlertIcon
+                : notification.type === 'application'
+                  ? ApplicationsIcon
+                  : notification.category === 'TODAY_INTERVIEW'
+                    ? ClockIcon
+                    : notification.category === 'UPCOMING_INTERVIEW'
+                      ? CalendarIcon
+                      : BellIcon
 
             return (
               <li key={notification.id}>
@@ -227,8 +246,17 @@ function NotificationsView() {
                         {notification.meta}
                       </p>
 
-                      {notification.meetingLink ? (
-                        <div className="mt-2.5">
+                      <div className="mt-2.5 flex flex-wrap items-center gap-3">
+                        {notification.actionUrl ? (
+                          <Link
+                            to={notification.actionUrl}
+                            className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          >
+                            View Matches →
+                          </Link>
+                        ) : null}
+
+                        {notification.meetingLink ? (
                           <a
                             href={notification.meetingLink}
                             target="_blank"
@@ -238,13 +266,47 @@ function NotificationsView() {
                             <ExternalLinkIcon className="h-3.5 w-3.5" />
                             Join interview
                           </a>
-                        </div>
-                      ) : null}
+                        ) : null}
+
+                        {notification.category === 'FOLLOW_UP_DUE' ||
+                        notification.category === 'FOLLOW_UP_OVERDUE' ? (
+                          <Link
+                            to={
+                              notification.applicationId
+                                ? `/follow-ups?applicationId=${notification.applicationId}`
+                                : '/follow-ups'
+                            }
+                            className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+                          >
+                            Open in Follow-ups →
+                          </Link>
+                        ) : null}
+
+                        {notification.applicationId &&
+                        notification.category !== 'FOLLOW_UP_DUE' &&
+                        notification.category !== 'FOLLOW_UP_OVERDUE' ? (
+                          <Link
+                            to={`/applications/${notification.applicationId}`}
+                            className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+                          >
+                            View Application →
+                          </Link>
+                        ) : null}
+
+                        {notification.type === 'interview' ? (
+                          <Link
+                            to="/interviews"
+                            className="inline-flex items-center gap-1 text-xs font-semibold text-muted-foreground hover:text-foreground hover:underline"
+                          >
+                            Calendar →
+                          </Link>
+                        ) : null}
+                      </div>
                     </div>
                   </div>
 
                   {/* ACTION CONTROLS */}
-                  <div className="mt-3 flex items-center justify-end gap-2 border-t border-border/50 pt-3 sm:mt-0 sm:border-0 sm:pt-0">
+                  <div className="mt-3 flex items-center justify-end gap-2 border-t border-border/50 pt-3 sm:mt-0 sm:border-0 sm:pt-0 sm:shrink-0">
                     <button
                       type="button"
                       onClick={() => handleToggleRead(notification)}

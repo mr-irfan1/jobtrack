@@ -46,3 +46,7 @@ export function deleteApplication(id: string): void {
   const next = applications.filter((existing) => existing.id !== id)
   writeAll(next)
 }
+
+export function clearLocalApplications(): void {
+  localStorage.removeItem(STORAGE_KEY)
+}

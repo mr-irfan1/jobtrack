@@ -70,6 +70,8 @@ function getSourceBrandName(urlStr: string): string {
   }
 }
 
+import { requireUserAuth } from '../_shared/auth.ts'
+
 function isPrivateOrLocalhostUrl(urlStr: string): boolean {
   if (!urlStr || typeof urlStr !== 'string') return true
   const lower = urlStr.trim().toLowerCase()
@@ -90,6 +92,11 @@ function isPrivateOrLocalhostUrl(urlStr: string): boolean {
       return true
     }
 
+    // Only permit standard HTTP/HTTPS ports to prevent internal port scanning
+    if (parsed.port && parsed.port !== '80' && parsed.port !== '443') {
+      return true
+    }
+
     const hostname = parsed.hostname.toLowerCase()
 
     if (
@@ -97,9 +104,29 @@ function isPrivateOrLocalhostUrl(urlStr: string): boolean {
       hostname === '127.0.0.1' ||
       hostname === '0.0.0.0' ||
       hostname === '::1' ||
+      hostname === '[::1]' ||
+      hostname === '[::]' ||
       hostname.endsWith('.local') ||
       hostname.endsWith('.localhost') ||
-      hostname.endsWith('.internal')
+      hostname.endsWith('.internal') ||
+      hostname.endsWith('.corp') ||
+      hostname.endsWith('.lan') ||
+      hostname === 'metadata.google.internal' ||
+      hostname.includes('169.254.169.254')
+    ) {
+      return true
+    }
+
+    // Check IPv6 private / link-local / unique-local / mapped ranges
+    if (
+      hostname.startsWith('fe80:') ||
+      hostname.startsWith('fc00:') ||
+      hostname.startsWith('fd00:') ||
+      hostname.startsWith('::ffff:') ||
+      hostname.includes('[fe80:') ||
+      hostname.includes('[fc00:') ||
+      hostname.includes('[fd00:') ||
+      hostname.includes('[::ffff:')
     ) {
       return true
     }
@@ -419,6 +446,12 @@ Deno.serve(async (req: Request): Promise<Response> => {
     )
   }
 
+  // Authenticate caller to prevent open proxy abuse
+  const auth = await requireUserAuth(req, corsHeaders)
+  if (auth.errorResponse) {
+    return auth.errorResponse
+  }
+
   let payload: { url?: unknown }
   try {
     payload = await req.json()
@@ -510,8 +543,19 @@ Deno.serve(async (req: Request): Promise<Response> => {
       console.log(`[JobURL] direct fetch failed with status: ${res.status}`)
       directFetchFailed = true
     } else {
-      const text = await res.text()
-      directHtml = text.slice(0, 2 * 1024 * 1024)
+      const contentType = (res.headers.get('content-type') || '').toLowerCase()
+      if (
+        contentType &&
+        !contentType.includes('text/') &&
+        !contentType.includes('application/xhtml') &&
+        !contentType.includes('application/json')
+      ) {
+        console.log(`[JobURL] direct fetch rejected non-html content-type: ${contentType}`)
+        directFetchFailed = true
+      } else {
+        const text = await res.text()
+        directHtml = text.slice(0, 2 * 1024 * 1024)
+      }
     }
   } catch (err: unknown) {
     clearTimeout(directTimeoutId)

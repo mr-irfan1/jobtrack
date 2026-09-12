@@ -1,14 +1,18 @@
 import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
+import StatusBadge from '../../components/StatusBadge/StatusBadge'
 import {
   CalendarIcon,
   ExternalLinkIcon,
   PlusIcon,
+  SparklesIcon,
 } from '../../components/icons/Icons'
 import type { JobApplication } from '../../types/application'
 import { useApplicationsViewModel } from '../Applications/useApplicationsViewModel'
 import { formatLongDate, formatTime12 } from './calendarHelpers'
 import InterviewCalendar from './components/InterviewCalendar'
 import InterviewFormModal from './components/InterviewFormModal'
+import { InterviewPrepModal } from './components/InterviewPrepModal'
 import { hasInterviewDate } from './interviewsHelpers'
 
 function localTodayISO(): string {
@@ -22,6 +26,7 @@ function InterviewsView() {
   const [selectedDate, setSelectedDate] = useState<string>(localTodayISO)
   const [isFormOpen, setIsFormOpen] = useState<boolean>(false)
   const [editingApp, setEditingApp] = useState<JobApplication | null>(null)
+  const [prepApp, setPrepApp] = useState<JobApplication | null>(null)
 
   // Applications with an interview scheduled on the currently selected date
   const selectedDateInterviews = useMemo(() => {
@@ -170,11 +175,14 @@ function InterviewsView() {
                           </div>
                         </div>
 
-                        {app.interviewType ? (
-                          <span className="shrink-0 rounded-full border border-border bg-muted/50 px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
-                            {app.interviewType}
-                          </span>
-                        ) : null}
+                        <div className="flex flex-col items-end gap-1 shrink-0">
+                          <StatusBadge status={app.status} />
+                          {app.interviewType ? (
+                            <span className="rounded-full border border-border bg-muted/50 px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
+                              {app.interviewType}
+                            </span>
+                          ) : null}
+                        </div>
                       </div>
 
                       {app.interviewTime ? (
@@ -189,20 +197,34 @@ function InterviewsView() {
                         </p>
                       ) : null}
 
-                      <div className="mt-4 flex items-center justify-between border-t border-border/60 pt-3">
-                        {app.meetingLink ? (
-                          <a
-                            href={app.meetingLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-border/60 pt-3">
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setPrepApp(app)}
                             className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                           >
-                            <ExternalLinkIcon className="h-3.5 w-3.5" />
-                            Join interview
-                          </a>
-                        ) : (
-                          <span />
-                        )}
+                            <SparklesIcon className="h-3.5 w-3.5" />
+                            Prepare with AI
+                          </button>
+                          <Link
+                            to={`/applications/${app.id}`}
+                            className="text-xs font-semibold text-muted-foreground hover:text-foreground hover:underline"
+                          >
+                            View →
+                          </Link>
+                          {app.meetingLink ? (
+                            <a
+                              href={app.meetingLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                            >
+                              <ExternalLinkIcon className="h-3.5 w-3.5" />
+                              Join
+                            </a>
+                          ) : null}
+                        </div>
 
                         <div className="flex items-center gap-2">
                           <button
@@ -243,6 +265,13 @@ function InterviewsView() {
           }}
         />
       ) : null}
+
+      {/* AI INTERVIEW PREP MODAL */}
+      <InterviewPrepModal
+        isOpen={Boolean(prepApp)}
+        onClose={() => setPrepApp(null)}
+        application={prepApp}
+      />
     </section>
   )
 }

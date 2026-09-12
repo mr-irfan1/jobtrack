@@ -34,6 +34,7 @@ export interface ApplicationRow {
   interview_time: string | null
   interview_type: string | null
   meeting_link: string | null
+  resume_id?: string | null
   created_at: string
   updated_at: string | null
 }
@@ -83,6 +84,7 @@ export function rowToApplication(row: ApplicationRow): JobApplication {
   if (interviewTime) application.interviewTime = interviewTime
   if (row.interview_type) application.interviewType = row.interview_type
   if (row.meeting_link) application.meetingLink = row.meeting_link
+  if (row.resume_id) application.resumeId = row.resume_id
   return application
 }
 
@@ -106,6 +108,7 @@ export function applicationToUpdatePayload(
     interview_time: application.interviewTime ?? null,
     interview_type: application.interviewType ?? null,
     meeting_link: application.meetingLink ?? null,
+    resume_id: application.resumeId ?? null,
   }
 }
 

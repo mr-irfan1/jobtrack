@@ -503,7 +503,8 @@
   }
 
   .jobtrack-footer-nav-cols {
-    gap: 40px;
+    flex-wrap: wrap;
+    gap: 28px;
   }
 
   .jobtrack-footer-bottom {

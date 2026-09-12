@@ -1,9 +1,14 @@
 import type { ComponentType, SVGProps } from 'react'
 import {
   ApplicationsIcon,
+  BellAlertIcon,
   BellIcon,
+  BookmarkIcon,
+  BriefcaseIcon,
   CalendarIcon,
+  ClockArrowIcon,
   DashboardIcon,
+  DocumentTextIcon,
   PipelineIcon,
 } from '../icons/Icons'
 
@@ -21,7 +26,12 @@ export interface NavItem {
  */
 export const NAV_ITEMS: NavItem[] = [
   { to: '/dashboard', label: 'Dashboard', icon: DashboardIcon },
+  { to: '/jobs', label: 'Job Feed', icon: BriefcaseIcon },
+  { to: '/saved-jobs', label: 'Saved Jobs', icon: BookmarkIcon },
+  { to: '/job-alerts', label: 'Job Alerts', icon: BellAlertIcon },
   { to: '/applications', label: 'Applications', icon: ApplicationsIcon },
+  { to: '/follow-ups', label: 'Follow-ups', icon: ClockArrowIcon },
+  { to: '/resumes', label: 'Resume Center', icon: DocumentTextIcon },
   { to: '/application-pipeline', label: 'Application Pipeline', icon: PipelineIcon },
   { to: '/interviews', label: 'Interviews', icon: CalendarIcon },
   { to: '/notifications', label: 'Notifications', icon: BellIcon },

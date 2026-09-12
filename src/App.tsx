@@ -1,5 +1,6 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import AppLayout from './components/AppLayout/AppLayout'
+import { ErrorBoundary } from './components/ErrorBoundary/ErrorBoundary'
 import HomeRoute from './components/HomeRoute/HomeRoute'
 import RequireAuth from './components/RequireAuth/RequireAuth'
 import SplashCursor from './components/SplashCursor/SplashCursor'
@@ -9,11 +10,16 @@ import ApplicationsView from './pages/Applications/ApplicationsView'
 import DashboardView from './pages/Dashboard/DashboardView'
 import AuthCallbackView from './pages/AuthCallback/AuthCallbackView'
 import ForgotPasswordView from './pages/ForgotPassword/ForgotPasswordView'
+import FollowUpsView from './pages/FollowUps/FollowUpsView'
 import InterviewsView from './pages/Interviews/InterviewsView'
+import JobAlertsView from './pages/JobAlerts/JobAlertsView'
+import JobFeedView from './pages/JobFeed/JobFeedView'
 import LoginView from './pages/Login/LoginView'
 import NotificationsView from './pages/Notifications/NotificationsView'
 import PrivacyPolicyView from './pages/PrivacyPolicy/PrivacyPolicyView'
 import ResetPasswordView from './pages/ResetPassword/ResetPasswordView'
+import ResumeCenterView from './pages/ResumeCenter/ResumeCenterView'
+import SavedJobsView from './pages/SavedJobs/SavedJobsView'
 import SettingsView from './pages/Settings/SettingsView'
 import SignupView from './pages/Signup/SignupView'
 import TermsView from './pages/Terms/TermsView'
@@ -23,49 +29,56 @@ function App() {
   return (
     <BrowserRouter>
       <SplashCursor RAINBOW_MODE COLOR="#7C3AED" />
-      <Routes>
-        {/* "/" is public. HomeRoute serves the marketing LandingView to
-            signed-out visitors and crawlers, and the dashboard (inside the app
-            shell) to authenticated users via the nested Outlet — so signed-in
-            users keep the dashboard at "/" exactly as before. */}
-        <Route path="/" element={<HomeRoute />}>
-          <Route element={<AppLayout />}>
-            <Route index element={<DashboardView />} />
+      <ErrorBoundary>
+        <Routes>
+          {/* "/" is public. HomeRoute serves the marketing LandingView to
+              signed-out visitors and crawlers, and the dashboard (inside the app
+              shell) to authenticated users via the nested Outlet — so signed-in
+              users keep the dashboard at "/" exactly as before. */}
+          <Route path="/" element={<HomeRoute />}>
+            <Route element={<AppLayout />}>
+              <Route index element={<DashboardView />} />
+            </Route>
           </Route>
-        </Route>
-        {/* Public informational pages (Privacy Policy & Terms) share the main
-            AppLayout shell (Header + scrollable main + Footer) without requiring
-            authentication. */}
-        <Route element={<AppLayout />}>
-          <Route path="/privacy-policy" element={<PrivacyPolicyView />} />
-          <Route path="/terms" element={<TermsView />} />
-        </Route>
-        {/* Remaining in-app pages require an authenticated session. RequireAuth
-            gates the branch (redirecting to /login when signed out) and the
-            standard Header + main shell is shared via AppLayout. */}
-        <Route element={<RequireAuth />}>
+          {/* Public informational pages (Privacy Policy & Terms) share the main
+              AppLayout shell (Header + scrollable main + Footer) without requiring
+              authentication. */}
           <Route element={<AppLayout />}>
-            <Route path="/dashboard" element={<DashboardView />} />
-            <Route path="/applications" element={<ApplicationsView />} />
-            <Route path="/applications/:id" element={<ApplicationDetailsView />} />
-            <Route path="/application-pipeline" element={<ApplicationPipelineView />} />
-            <Route path="/pipeline" element={<ApplicationPipelineView />} />
-            <Route path="/interviews" element={<InterviewsView />} />
-            <Route path="/notifications" element={<NotificationsView />} />
-            <Route path="/settings" element={<SettingsView />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicyView />} />
+            <Route path="/terms" element={<TermsView />} />
           </Route>
-        </Route>
-        {/* Public auth pages each render their own full-screen two-column
-            shell (AuthShell) — no shared route layout. Paths are unchanged.
-            /verify-email is the landing route for Supabase's signup
-            verification (magic) link. */}
-        <Route path="/login" element={<LoginView />} />
-        <Route path="/signup" element={<SignupView />} />
-        <Route path="/forgot-password" element={<ForgotPasswordView />} />
-        <Route path="/reset-password" element={<ResetPasswordView />} />
-        <Route path="/verify-email" element={<VerifyEmailView />} />
-        <Route path="/auth/callback" element={<AuthCallbackView />} />
-      </Routes>
+          {/* Remaining in-app pages require an authenticated session. RequireAuth
+              gates the branch (redirecting to /login when signed out) and the
+              standard Header + main shell is shared via AppLayout. */}
+          <Route element={<RequireAuth />}>
+            <Route element={<AppLayout />}>
+              <Route path="/dashboard" element={<DashboardView />} />
+              <Route path="/jobs" element={<JobFeedView />} />
+              <Route path="/saved-jobs" element={<SavedJobsView />} />
+              <Route path="/job-alerts" element={<JobAlertsView />} />
+              <Route path="/applications" element={<ApplicationsView />} />
+              <Route path="/applications/:id" element={<ApplicationDetailsView />} />
+              <Route path="/follow-ups" element={<FollowUpsView />} />
+              <Route path="/resumes" element={<ResumeCenterView />} />
+              <Route path="/application-pipeline" element={<ApplicationPipelineView />} />
+              <Route path="/pipeline" element={<ApplicationPipelineView />} />
+              <Route path="/interviews" element={<InterviewsView />} />
+              <Route path="/notifications" element={<NotificationsView />} />
+              <Route path="/settings" element={<SettingsView />} />
+            </Route>
+          </Route>
+          {/* Public auth pages each render their own full-screen two-column
+              shell (AuthShell) — no shared route layout. Paths are unchanged.
+              /verify-email is the landing route for Supabase's signup
+              verification (magic) link. */}
+          <Route path="/login" element={<LoginView />} />
+          <Route path="/signup" element={<SignupView />} />
+          <Route path="/forgot-password" element={<ForgotPasswordView />} />
+          <Route path="/reset-password" element={<ResetPasswordView />} />
+          <Route path="/verify-email" element={<VerifyEmailView />} />
+          <Route path="/auth/callback" element={<AuthCallbackView />} />
+        </Routes>
+      </ErrorBoundary>
     </BrowserRouter>
   )
 }

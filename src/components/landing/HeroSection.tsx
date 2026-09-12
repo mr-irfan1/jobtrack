@@ -101,14 +101,14 @@ function HeroSection() {
               className="h-1.5 w-1.5 rounded-full bg-[var(--lp-accent)]"
               aria-hidden="true"
             />
-            <span className="lp-eyebrow">Organize your job search</span>
+            <span className="lp-eyebrow">AI-powered job search platform</span>
           </span>
 
           <h1 className="mt-7 text-[2.75rem] font-extrabold leading-[1.02] tracking-tight text-[var(--lp-cream)] sm:text-6xl lg:text-7xl">
-            <Words text="Track every application." startDelay={180} />
+            <Words text="Find, match, and track" startDelay={180} />
             <span className="mt-2 block">
               <span className="lp-serif text-[var(--lp-cream-2)]">
-                <Words text="Land your next opportunity." startDelay={460} />
+                <Words text="your next opportunity." startDelay={460} />
               </span>
             </span>
           </h1>
@@ -117,9 +117,9 @@ function HeroSection() {
             className="lp-fade-up mx-auto mt-7 max-w-xl text-base text-[var(--lp-cream-2)] sm:text-lg"
             style={{ animationDelay: '900ms' } as CSSProperties}
           >
-            JobTrack brings your applications, interviews, and offers into a
-            single organized workspace — so you always know exactly where you
-            stand.
+            AI-powered job matching, resume tailoring, and interview prep — plus
+            a complete workspace to track every application from discovery to
+            offer.
           </p>
 
           <div
@@ -127,7 +127,7 @@ function HeroSection() {
             style={{ animationDelay: '1120ms' } as CSSProperties}
           >
             <Link to="/signup" className="lp-btn lp-btn-accent">
-              Get Started
+              Start Your Job Search
               <ArrowRightIcon className="lp-arrow h-4 w-4" />
             </Link>
             <Link to="/login" className="lp-btn lp-btn-ghost">

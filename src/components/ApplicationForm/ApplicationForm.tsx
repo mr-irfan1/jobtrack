@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import { APPLICATION_STATUSES } from '../../types/application'
 import type {
@@ -6,6 +6,7 @@ import type {
   ApplicationStatus,
   JobApplication,
 } from '../../types/application'
+import { getPrimaryResume, getResumes } from '../../services/resumeStore'
 
 interface ApplicationFormProps {
   /**
@@ -34,6 +35,7 @@ const secondaryButtonClasses =
 
 /** Editable fields of a brand-new application, with sensible defaults. */
 function emptyDraft(): ApplicationDraft {
+  const primary = getPrimaryResume()
   return {
     company: '',
     jobTitle: '',
@@ -44,6 +46,7 @@ function emptyDraft(): ApplicationDraft {
     applicationDate: new Date().toLocaleDateString('en-CA'),
     status: 'Applied',
     notes: '',
+    resumeId: primary?.id,
   }
 }
 
@@ -63,6 +66,7 @@ function toDraft(application: JobApplication): ApplicationDraft {
     interviewTime: application.interviewTime,
     interviewType: application.interviewType,
     meetingLink: application.meetingLink,
+    resumeId: application.resumeId,
   }
 }
 
@@ -82,6 +86,7 @@ function ApplicationForm({
     initialValue ? toDraft(initialValue) : emptyDraft(),
   )
   const [errors, setErrors] = useState<FieldErrors>({})
+  const resumes = useMemo(() => getResumes(), [])
 
   function updateField<K extends keyof ApplicationDraft>(
     key: K,
@@ -212,6 +217,27 @@ function ApplicationForm({
             {APPLICATION_STATUSES.map((status) => (
               <option key={status} value={status}>
                 {status}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label htmlFor="resumeId" className={labelClasses}>
+            Resume Used
+          </label>
+          <select
+            id="resumeId"
+            value={draft.resumeId ?? ''}
+            onChange={(event) =>
+              updateField('resumeId', event.target.value || undefined)
+            }
+            className={inputClasses}
+          >
+            <option value="">No resume selected</option>
+            {resumes.map((r) => (
+              <option key={r.id} value={r.id}>
+                {r.name} {r.isPrimary ? '(Primary)' : ''}
               </option>
             ))}
           </select>

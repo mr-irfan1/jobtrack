@@ -31,6 +31,11 @@ export interface JobApplication {
   interviewTime?: string
   interviewType?: string
   meetingLink?: string
+  /**
+   * Optional id of the resume used for this application, referencing a Resume
+   * from the Resume Center.
+   */
+  resumeId?: string
 }
 
 /**

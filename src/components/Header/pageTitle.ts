@@ -17,7 +17,13 @@ interface PageTitle {
 
 const PAGE_TITLES: readonly PageTitle[] = [
   { path: '/', title: 'Dashboard', exact: true },
+  { path: '/dashboard', title: 'Dashboard', exact: true },
+  { path: '/jobs', title: 'Job Feed' },
+  { path: '/saved-jobs', title: 'Saved Jobs' },
+  { path: '/job-alerts', title: 'Job Alerts' },
   { path: '/applications', title: 'Applications' },
+  { path: '/follow-ups', title: 'Follow-ups' },
+  { path: '/resumes', title: 'Resume Center' },
 ]
 
 export function pageTitleForPath(pathname: string): string {

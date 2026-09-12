@@ -1,4 +1,5 @@
 import type { JobApplication } from '../../types/application'
+import type { FollowUp } from '../../types/followUp'
 
 /**
  * Notification domain for JobTrack.
@@ -22,8 +23,15 @@ export type NotificationCategory =
   | 'APPLICATION_ADDED'
   | 'STATUS_CHANGED'
   | 'SYSTEM'
+  | 'FOLLOW_UP_DUE'
+  | 'FOLLOW_UP_OVERDUE'
+  | 'JOB_ALERT_MATCH'
 
-export type NotificationType = 'application' | 'interview' | 'system'
+export type NotificationType =
+  | 'application'
+  | 'interview'
+  | 'system'
+  | 'job_alert'
 
 export interface InterviewNotification {
   /** Stable, deterministic id: applicationId + interviewDate + interviewTime. */
@@ -41,6 +49,9 @@ export interface InterviewNotification {
   meta: string
   /** Present only when a safe, joinable http(s) meeting link exists. */
   meetingLink?: string
+  /** Destination link for action clicks, e.g. filtered Job Feed. */
+  actionUrl?: string
+  alertId?: string
   read: boolean
 }
 
@@ -211,10 +222,17 @@ export function buildNotifications(
 export function buildComprehensiveNotifications(
   applications: JobApplication[],
   context: NotificationContext,
+  followUps: FollowUp[] = [],
+  alertNotifications: JobTrackNotification[] = [],
 ): JobTrackNotification[] {
   const list: JobTrackNotification[] = []
 
-  // 1. System Welcome Notification
+  // 1. Alert Notifications (Prioritized at the top of the feed)
+  if (alertNotifications.length > 0) {
+    list.push(...alertNotifications)
+  }
+
+  // 2. System Welcome Notification
   const welcomeId = 'sys::welcome'
   list.push({
     id: welcomeId,
@@ -262,6 +280,48 @@ export function buildComprehensiveNotifications(
   // 3. Interview Notifications
   const interviewNotifications = buildNotifications(applications, context)
   list.push(...interviewNotifications)
+
+  // 4. Follow-up Notifications (Due Today and Overdue)
+  const appMap = new Map<string, JobApplication>()
+  for (const app of applications) {
+    appMap.set(app.id, app)
+  }
+
+  for (const fu of followUps) {
+    if (fu.status !== 'pending') continue
+    const app = appMap.get(fu.applicationId)
+    if (!app) continue
+
+    if (fu.scheduledDate === context.todayISO) {
+      const id = `${fu.id}::due`
+      list.push({
+        id,
+        applicationId: app.id,
+        type: 'application',
+        category: 'FOLLOW_UP_DUE',
+        title: `Follow-up due today: ${app.company}`,
+        company: app.company,
+        jobTitle: app.jobTitle,
+        description: `Follow-up due today for ${app.jobTitle} at ${app.company}.${fu.note ? ` Note: ${fu.note}` : ''}`,
+        meta: `${app.company} • Follow-up Today${fu.scheduledTime ? ` • ${formatTime12(fu.scheduledTime)}` : ''}`,
+        read: context.readIds.has(id),
+      })
+    } else if (fu.scheduledDate < context.todayISO) {
+      const id = `${fu.id}::overdue`
+      list.push({
+        id,
+        applicationId: app.id,
+        type: 'application',
+        category: 'FOLLOW_UP_OVERDUE',
+        title: `Follow-up overdue: ${app.company}`,
+        company: app.company,
+        jobTitle: app.jobTitle,
+        description: `Follow-up was scheduled for ${fu.scheduledDate} for ${app.jobTitle} at ${app.company}.`,
+        meta: `${app.company} • Follow-up Overdue`,
+        read: context.readIds.has(id),
+      })
+    }
+  }
 
   return list
 }

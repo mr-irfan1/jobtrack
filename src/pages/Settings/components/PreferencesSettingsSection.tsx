@@ -499,9 +499,14 @@ function PreferencesSettingsSection() {
 
       {/* RESET CONFIRMATION MODAL */}
       {isResetModalOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-md rounded-2xl border border-border bg-surface p-6 shadow-xl space-y-4">
-            <h3 className="text-base font-bold text-foreground">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="reset-preferences-modal-title"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4 backdrop-blur-xs"
+        >
+          <div className="w-full max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-2xl border border-border bg-surface p-6 shadow-xl space-y-4">
+            <h3 id="reset-preferences-modal-title" className="text-base font-bold text-foreground">
               Reset preferences?
             </h3>
             <p className="text-xs text-muted-foreground">

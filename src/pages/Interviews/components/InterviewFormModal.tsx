@@ -93,36 +93,42 @@ function InterviewFormModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="interview-form-modal-title"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5"
+    >
       <div
         className="fixed inset-0 bg-black/50 backdrop-blur-sm"
         aria-hidden="true"
         onClick={onCancel}
       />
-      <div className="relative z-10 w-full max-w-lg rounded-2xl border border-border bg-surface p-6 shadow-xl">
-        <div className="flex items-center justify-between border-b border-border pb-4">
-          <h2 className="text-lg font-bold tracking-tight text-foreground">
+      <div className="relative z-10 flex max-h-[calc(100dvh-1.5rem)] sm:max-h-[calc(100dvh-2.5rem)] w-full max-w-lg flex-col rounded-2xl border border-border bg-surface p-5 sm:p-6 shadow-xl overflow-hidden text-foreground">
+        <div className="flex shrink-0 items-center justify-between border-b border-border pb-4">
+          <h2 id="interview-form-modal-title" className="text-lg font-bold tracking-tight text-foreground">
             {isEditing ? 'Edit interview' : 'Schedule interview'}
           </h2>
           <button
             type="button"
             onClick={onCancel}
-            aria-label="Close"
-            className="rounded-lg p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            aria-label="Close dialog"
+            className="rounded-lg p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <CloseIcon className="h-5 w-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-          {error ? (
-            <p className="rounded-md bg-danger/10 p-2.5 text-xs text-danger-fg">
-              {error}
-            </p>
-          ) : null}
+        <form onSubmit={handleSubmit} className="mt-4 flex flex-1 flex-col overflow-hidden min-h-0">
+          <div className="flex-1 overflow-y-auto space-y-4 pr-1">
+            {error ? (
+              <p className="rounded-md bg-danger/10 p-2.5 text-xs text-danger-fg">
+                {error}
+              </p>
+            ) : null}
 
-          {!isEditing ? (
-            <div>
+            {!isEditing ? (
+              <div>
               <label htmlFor="applicationSelect" className={labelClasses}>
                 Job application
               </label>
@@ -225,7 +231,9 @@ function InterviewFormModal({
             />
           </div>
 
-          <div className="mt-6 flex justify-end gap-3 pt-2">
+          </div>
+
+          <div className="mt-4 flex shrink-0 flex-wrap justify-end gap-3 border-t border-border pt-3">
             <button
               type="button"
               onClick={onCancel}

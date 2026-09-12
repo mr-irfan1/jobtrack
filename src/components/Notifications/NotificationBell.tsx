@@ -81,7 +81,13 @@ function NotificationBell() {
     (notification: InterviewNotification) => {
       markRead(notification.id)
       setOpen(false)
-      navigate('/applications')
+      if (notification.actionUrl) {
+        navigate(notification.actionUrl)
+      } else if (notification.applicationId) {
+        navigate(`/applications/${notification.applicationId}`)
+      } else {
+        navigate('/applications')
+      }
     },
     [markRead, navigate],
   )

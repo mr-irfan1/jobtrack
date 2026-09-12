@@ -38,7 +38,7 @@ function SidebarUser({ collapsed }: SidebarUserProps) {
 
   if (collapsed) {
     return (
-      <div className="flex shrink-0 flex-col items-center gap-2 border-t border-border p-3">
+      <div className="flex shrink-0 flex-col items-center gap-2 p-3">
         <Link to="/settings" role="img" aria-label={name} title={name} className={avatarClasses}>
           {mono}
         </Link>
@@ -62,30 +62,28 @@ function SidebarUser({ collapsed }: SidebarUserProps) {
   }
 
   return (
-    <div className="shrink-0 space-y-2 border-t border-border p-3">
+    <div className="shrink-0 space-y-2 p-3">
       <Link
         to="/settings"
-        className="flex items-center gap-3 rounded-xl px-2 py-1.5 transition-colors hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="flex items-center gap-3 rounded-2xl px-2 py-2 transition-colors hover:bg-muted/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <span aria-hidden="true" className={avatarClasses}>
           {mono}
         </span>
-        <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-foreground">{name}</p>
-          {email ? (
-            <p className="truncate text-xs text-muted-foreground" title={email}>
-              {email}
-            </p>
-          ) : null}
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-xs font-bold text-foreground">{name}</p>
+          <p className="truncate text-[11px] font-medium text-muted-foreground/80">
+            {email || 'Job seeker'}
+          </p>
         </div>
       </Link>
       <button
         type="button"
         onClick={signOut}
         disabled={signingOut}
-        className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors duration-150 hover:bg-muted hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
+        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
       >
-        <SignOutIcon className="h-5 w-5 shrink-0" />
+        <SignOutIcon className="h-4 w-4 shrink-0" />
         <span>{signingOut ? 'Signing out…' : 'Log out'}</span>
       </button>
       {error ? (

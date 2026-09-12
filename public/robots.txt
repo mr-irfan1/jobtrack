@@ -1,9 +1,26 @@
 User-agent: *
 Allow: /
+Allow: /signup
+Allow: /privacy-policy
+Allow: /terms
 
+# Disallow private user workspace routes
+Disallow: /dashboard
+Disallow: /jobs
+Disallow: /saved-jobs
 Disallow: /applications
+Disallow: /resumes
+Disallow: /follow-ups
+Disallow: /interviews
+Disallow: /pipeline
+Disallow: /application-pipeline
+Disallow: /settings
+Disallow: /notifications
+
+# Disallow transient token, reset, and verification routes
 Disallow: /forgot-password
 Disallow: /reset-password
 Disallow: /verify-email
+Disallow: /auth/callback
 
 Sitemap: https://jobtrack.co.in/sitemap.xml

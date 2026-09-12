@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { JobApplication } from '../../types/application'
+import type { FollowUp } from '../../types/followUp'
+import { getFollowUps, subscribeFollowUps } from '../../services/followUpStore'
+import { getAlerts, subscribeJobAlerts } from '../../services/jobAlertsStore'
+import { fetchJobListings } from '../../services/jobFeedService'
+import { evaluateJobAlerts } from '../../services/jobAlertMatchingService'
 import type { JobTrackNotification } from './notifications'
 import {
   buildComprehensiveNotifications,
@@ -55,6 +60,29 @@ export function useNotifications(): NotificationsViewModel {
   const [dismissedIds, setDismissedIds] = useState<ReadonlySet<string>>(
     () => new Set<string>(),
   )
+  const [followUps, setFollowUps] = useState<FollowUp[]>(() => getFollowUps())
+  const [alertNotifications, setAlertNotifications] = useState<JobTrackNotification[]>([])
+
+  const evaluateAlerts = useCallback(async () => {
+    try {
+      const alerts = getAlerts()
+      if (alerts.length === 0) {
+        setAlertNotifications([])
+        return
+      }
+      const jobs = await fetchJobListings()
+      const matchResults = evaluateJobAlerts(jobs, alerts, {
+        recordNotified: false,
+        readIds,
+      })
+      const notifs = matchResults
+        .map((r) => r.notification)
+        .filter((n): n is JobTrackNotification => Boolean(n))
+      setAlertNotifications(notifs)
+    } catch {
+      setAlertNotifications([])
+    }
+  }, [readIds])
 
   const refresh = useCallback(async () => {
     try {
@@ -64,7 +92,9 @@ export function useNotifications(): NotificationsViewModel {
     }
     setReadIds(getReadIds())
     setDismissedIds(getDismissedIds())
-  }, [])
+    setFollowUps(getFollowUps())
+    evaluateAlerts()
+  }, [evaluateAlerts])
 
   // Initial load. Reading storage is external-system synchronization.
   useEffect(() => {
@@ -72,15 +102,33 @@ export function useNotifications(): NotificationsViewModel {
     refresh()
   }, [refresh])
 
+  useEffect(() => {
+    const unsubFollowUps = subscribeFollowUps(() => {
+      setFollowUps(getFollowUps())
+    })
+    const unsubAlerts = subscribeJobAlerts(() => {
+      evaluateAlerts()
+    })
+    return () => {
+      unsubFollowUps()
+      unsubAlerts()
+    }
+  }, [evaluateAlerts])
+
   const rawNotifications = useMemo(() => {
     const now = new Date()
-    return buildComprehensiveNotifications(applications, {
-      todayISO: localDateISO(now),
-      tomorrowISO: localTomorrowISO(now),
-      currentYear: now.getFullYear(),
-      readIds,
-    })
-  }, [applications, readIds])
+    return buildComprehensiveNotifications(
+      applications,
+      {
+        todayISO: localDateISO(now),
+        tomorrowISO: localTomorrowISO(now),
+        currentYear: now.getFullYear(),
+        readIds,
+      },
+      followUps,
+      alertNotifications,
+    )
+  }, [applications, readIds, followUps, alertNotifications])
 
   // Exclude dismissed notifications
   const notifications = useMemo(() => {

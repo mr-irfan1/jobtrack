@@ -1,4 +1,5 @@
 import {
+  BellAlertIcon,
   CalendarIcon,
   ClockIcon,
   ExternalLinkIcon,
@@ -7,7 +8,7 @@ import type { InterviewNotification } from './notifications'
 
 interface NotificationItemProps {
   notification: InterviewNotification
-  /** Select the notification (marks it read + navigates to Applications). */
+  /** Select the notification (marks it read + navigates to destination). */
   onSelect: (notification: InterviewNotification) => void
 }
 
@@ -19,7 +20,12 @@ interface NotificationItemProps {
  */
 function NotificationItem({ notification, onSelect }: NotificationItemProps) {
   const { read, title, company, meta, meetingLink, category } = notification
-  const Icon = category === 'TODAY_INTERVIEW' ? ClockIcon : CalendarIcon
+  const Icon =
+    category === 'JOB_ALERT_MATCH'
+      ? BellAlertIcon
+      : category === 'TODAY_INTERVIEW'
+        ? ClockIcon
+        : CalendarIcon
 
   return (
     <li>

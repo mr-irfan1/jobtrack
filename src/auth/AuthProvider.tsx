@@ -5,6 +5,7 @@ import * as authService from '../services/authService'
 import { AuthContext } from './AuthContext'
 import type { AuthContextValue } from './AuthContext'
 import { snapshotFromSession } from './authState'
+import { clearAllLocalSessionData, runClientMigration } from '../services/migrationBridge'
 
 interface AuthProviderProps {
   children: ReactNode
@@ -72,6 +73,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (!active) return
       switch (event) {
         case 'SIGNED_OUT':
+          clearAllLocalSessionData()
           applySession(null)
           break
         // PASSWORD_RECOVERY carries a short-lived recovery session. Store it (the
@@ -84,6 +86,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
         case 'USER_UPDATED':
         case 'INITIAL_SESSION':
           applySession(nextSession)
+          if (nextSession?.user) {
+            void runClientMigration()
+          }
           break
         default:
           // MFA_CHALLENGE_VERIFIED and any future events still carry the current
