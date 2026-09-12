@@ -38,22 +38,41 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Users can view own profile"
-  ON public.profiles FOR SELECT
-  USING (auth.uid() = id);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'profiles' AND policyname = 'Users can view own profile'
+  ) THEN
+    CREATE POLICY "Users can view own profile"
+      ON public.profiles FOR SELECT
+      USING (auth.uid() = id);
+  END IF;
 
-CREATE POLICY "Users can insert own profile"
-  ON public.profiles FOR INSERT
-  WITH CHECK (auth.uid() = id);
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'profiles' AND policyname = 'Users can insert own profile'
+  ) THEN
+    CREATE POLICY "Users can insert own profile"
+      ON public.profiles FOR INSERT
+      WITH CHECK (auth.uid() = id);
+  END IF;
 
-CREATE POLICY "Users can update own profile"
-  ON public.profiles FOR UPDATE
-  USING (auth.uid() = id)
-  WITH CHECK (auth.uid() = id);
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'profiles' AND policyname = 'Users can update own profile'
+  ) THEN
+    CREATE POLICY "Users can update own profile"
+      ON public.profiles FOR UPDATE
+      USING (auth.uid() = id)
+      WITH CHECK (auth.uid() = id);
+  END IF;
 
-CREATE POLICY "Users can delete own profile"
-  ON public.profiles FOR DELETE
-  USING (auth.uid() = id);
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'profiles' AND policyname = 'Users can delete own profile'
+  ) THEN
+    CREATE POLICY "Users can delete own profile"
+      ON public.profiles FOR DELETE
+      USING (auth.uid() = id);
+  END IF;
+END $$;
 
 DROP TRIGGER IF EXISTS tr_profiles_updated_at ON public.profiles;
 CREATE TRIGGER tr_profiles_updated_at
@@ -104,22 +123,41 @@ CREATE INDEX IF NOT EXISTS idx_resumes_user_primary ON public.resumes(user_id, i
 
 ALTER TABLE public.resumes ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Users can view own resumes"
-  ON public.resumes FOR SELECT
-  USING (auth.uid() = user_id);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'resumes' AND policyname = 'Users can view own resumes'
+  ) THEN
+    CREATE POLICY "Users can view own resumes"
+      ON public.resumes FOR SELECT
+      USING (auth.uid() = user_id);
+  END IF;
 
-CREATE POLICY "Users can insert own resumes"
-  ON public.resumes FOR INSERT
-  WITH CHECK (auth.uid() = user_id);
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'resumes' AND policyname = 'Users can insert own resumes'
+  ) THEN
+    CREATE POLICY "Users can insert own resumes"
+      ON public.resumes FOR INSERT
+      WITH CHECK (auth.uid() = user_id);
+  END IF;
 
-CREATE POLICY "Users can update own resumes"
-  ON public.resumes FOR UPDATE
-  USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'resumes' AND policyname = 'Users can update own resumes'
+  ) THEN
+    CREATE POLICY "Users can update own resumes"
+      ON public.resumes FOR UPDATE
+      USING (auth.uid() = user_id)
+      WITH CHECK (auth.uid() = user_id);
+  END IF;
 
-CREATE POLICY "Users can delete own resumes"
-  ON public.resumes FOR DELETE
-  USING (auth.uid() = user_id);
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'resumes' AND policyname = 'Users can delete own resumes'
+  ) THEN
+    CREATE POLICY "Users can delete own resumes"
+      ON public.resumes FOR DELETE
+      USING (auth.uid() = user_id);
+  END IF;
+END $$;
 
 DROP TRIGGER IF EXISTS tr_resumes_updated_at ON public.resumes;
 CREATE TRIGGER tr_resumes_updated_at
@@ -142,42 +180,61 @@ SET public = false,
     allowed_mime_types = ARRAY['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
 
 -- Storage Object RLS for private resumes bucket (User path isolation: {user_id}/*)
-CREATE POLICY "Users can access own resume files"
-  ON storage.objects FOR SELECT
-  USING (
-    bucket_id = 'resumes'
-    AND auth.role() = 'authenticated'
-    AND (storage.foldername(name))[1] = auth.uid()::text
-  );
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE schemaname = 'storage' AND tablename = 'objects' AND policyname = 'Users can access own resume files'
+  ) THEN
+    CREATE POLICY "Users can access own resume files"
+      ON storage.objects FOR SELECT
+      USING (
+        bucket_id = 'resumes'
+        AND auth.role() = 'authenticated'
+        AND (storage.foldername(name))[1] = auth.uid()::text
+      );
+  END IF;
 
-CREATE POLICY "Users can upload own resume files"
-  ON storage.objects FOR INSERT
-  WITH CHECK (
-    bucket_id = 'resumes'
-    AND auth.role() = 'authenticated'
-    AND (storage.foldername(name))[1] = auth.uid()::text
-  );
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE schemaname = 'storage' AND tablename = 'objects' AND policyname = 'Users can upload own resume files'
+  ) THEN
+    CREATE POLICY "Users can upload own resume files"
+      ON storage.objects FOR INSERT
+      WITH CHECK (
+        bucket_id = 'resumes'
+        AND auth.role() = 'authenticated'
+        AND (storage.foldername(name))[1] = auth.uid()::text
+      );
+  END IF;
 
-CREATE POLICY "Users can update own resume files"
-  ON storage.objects FOR UPDATE
-  USING (
-    bucket_id = 'resumes'
-    AND auth.role() = 'authenticated'
-    AND (storage.foldername(name))[1] = auth.uid()::text
-  )
-  WITH CHECK (
-    bucket_id = 'resumes'
-    AND auth.role() = 'authenticated'
-    AND (storage.foldername(name))[1] = auth.uid()::text
-  );
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE schemaname = 'storage' AND tablename = 'objects' AND policyname = 'Users can update own resume files'
+  ) THEN
+    CREATE POLICY "Users can update own resume files"
+      ON storage.objects FOR UPDATE
+      USING (
+        bucket_id = 'resumes'
+        AND auth.role() = 'authenticated'
+        AND (storage.foldername(name))[1] = auth.uid()::text
+      )
+      WITH CHECK (
+        bucket_id = 'resumes'
+        AND auth.role() = 'authenticated'
+        AND (storage.foldername(name))[1] = auth.uid()::text
+      );
+  END IF;
 
-CREATE POLICY "Users can delete own resume files"
-  ON storage.objects FOR DELETE
-  USING (
-    bucket_id = 'resumes'
-    AND auth.role() = 'authenticated'
-    AND (storage.foldername(name))[1] = auth.uid()::text
-  );
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE schemaname = 'storage' AND tablename = 'objects' AND policyname = 'Users can delete own resume files'
+  ) THEN
+    CREATE POLICY "Users can delete own resume files"
+      ON storage.objects FOR DELETE
+      USING (
+        bucket_id = 'resumes'
+        AND auth.role() = 'authenticated'
+        AND (storage.foldername(name))[1] = auth.uid()::text
+      );
+  END IF;
+END $$;
 
 -- ----------------------------------------------------------------------------
 -- 3. Applications Table (Ensure existing schema has resume_id & indexes)
@@ -225,7 +282,7 @@ ALTER TABLE public.applications ENABLE ROW LEVEL SECURITY;
 DO $$
 BEGIN
   IF NOT EXISTS (
-    SELECT 1 FROM pg_policies WHERE tablename = 'applications' AND policyname = 'Users can view own applications'
+    SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'applications' AND policyname = 'Users can view own applications'
   ) THEN
     CREATE POLICY "Users can view own applications"
       ON public.applications FOR SELECT
@@ -233,7 +290,7 @@ BEGIN
   END IF;
 
   IF NOT EXISTS (
-    SELECT 1 FROM pg_policies WHERE tablename = 'applications' AND policyname = 'Users can insert own applications'
+    SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'applications' AND policyname = 'Users can insert own applications'
   ) THEN
     CREATE POLICY "Users can insert own applications"
       ON public.applications FOR INSERT
@@ -249,7 +306,7 @@ BEGIN
   END IF;
 
   IF NOT EXISTS (
-    SELECT 1 FROM pg_policies WHERE tablename = 'applications' AND policyname = 'Users can update own applications'
+    SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'applications' AND policyname = 'Users can update own applications'
   ) THEN
     CREATE POLICY "Users can update own applications"
       ON public.applications FOR UPDATE
@@ -266,7 +323,7 @@ BEGIN
   END IF;
 
   IF NOT EXISTS (
-    SELECT 1 FROM pg_policies WHERE tablename = 'applications' AND policyname = 'Users can delete own applications'
+    SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'applications' AND policyname = 'Users can delete own applications'
   ) THEN
     CREATE POLICY "Users can delete own applications"
       ON public.applications FOR DELETE
@@ -303,34 +360,53 @@ CREATE INDEX IF NOT EXISTS idx_follow_ups_user_scheduled ON public.follow_ups(us
 
 ALTER TABLE public.follow_ups ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Users can view own follow ups"
-  ON public.follow_ups FOR SELECT
-  USING (auth.uid() = user_id);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'follow_ups' AND policyname = 'Users can view own follow ups'
+  ) THEN
+    CREATE POLICY "Users can view own follow ups"
+      ON public.follow_ups FOR SELECT
+      USING (auth.uid() = user_id);
+  END IF;
 
-CREATE POLICY "Users can insert own follow ups"
-  ON public.follow_ups FOR INSERT
-  WITH CHECK (
-    auth.uid() = user_id
-    AND EXISTS (
-      SELECT 1 FROM public.applications a
-      WHERE a.id = application_id AND a.user_id = auth.uid()
-    )
-  );
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'follow_ups' AND policyname = 'Users can insert own follow ups'
+  ) THEN
+    CREATE POLICY "Users can insert own follow ups"
+      ON public.follow_ups FOR INSERT
+      WITH CHECK (
+        auth.uid() = user_id
+        AND EXISTS (
+          SELECT 1 FROM public.applications a
+          WHERE a.id = application_id AND a.user_id = auth.uid()
+        )
+      );
+  END IF;
 
-CREATE POLICY "Users can update own follow ups"
-  ON public.follow_ups FOR UPDATE
-  USING (auth.uid() = user_id)
-  WITH CHECK (
-    auth.uid() = user_id
-    AND EXISTS (
-      SELECT 1 FROM public.applications a
-      WHERE a.id = application_id AND a.user_id = auth.uid()
-    )
-  );
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'follow_ups' AND policyname = 'Users can update own follow ups'
+  ) THEN
+    CREATE POLICY "Users can update own follow ups"
+      ON public.follow_ups FOR UPDATE
+      USING (auth.uid() = user_id)
+      WITH CHECK (
+        auth.uid() = user_id
+        AND EXISTS (
+          SELECT 1 FROM public.applications a
+          WHERE a.id = application_id AND a.user_id = auth.uid()
+        )
+      );
+  END IF;
 
-CREATE POLICY "Users can delete own follow ups"
-  ON public.follow_ups FOR DELETE
-  USING (auth.uid() = user_id);
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'follow_ups' AND policyname = 'Users can delete own follow ups'
+  ) THEN
+    CREATE POLICY "Users can delete own follow ups"
+      ON public.follow_ups FOR DELETE
+      USING (auth.uid() = user_id);
+  END IF;
+END $$;
 
 DROP TRIGGER IF EXISTS tr_follow_ups_updated_at ON public.follow_ups;
 CREATE TRIGGER tr_follow_ups_updated_at
@@ -367,22 +443,41 @@ CREATE INDEX IF NOT EXISTS idx_saved_jobs_user_saved ON public.saved_jobs(user_i
 
 ALTER TABLE public.saved_jobs ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Users can view own saved jobs"
-  ON public.saved_jobs FOR SELECT
-  USING (auth.uid() = user_id);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'saved_jobs' AND policyname = 'Users can view own saved jobs'
+  ) THEN
+    CREATE POLICY "Users can view own saved jobs"
+      ON public.saved_jobs FOR SELECT
+      USING (auth.uid() = user_id);
+  END IF;
 
-CREATE POLICY "Users can insert own saved jobs"
-  ON public.saved_jobs FOR INSERT
-  WITH CHECK (auth.uid() = user_id);
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'saved_jobs' AND policyname = 'Users can insert own saved jobs'
+  ) THEN
+    CREATE POLICY "Users can insert own saved jobs"
+      ON public.saved_jobs FOR INSERT
+      WITH CHECK (auth.uid() = user_id);
+  END IF;
 
-CREATE POLICY "Users can update own saved jobs"
-  ON public.saved_jobs FOR UPDATE
-  USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'saved_jobs' AND policyname = 'Users can update own saved jobs'
+  ) THEN
+    CREATE POLICY "Users can update own saved jobs"
+      ON public.saved_jobs FOR UPDATE
+      USING (auth.uid() = user_id)
+      WITH CHECK (auth.uid() = user_id);
+  END IF;
 
-CREATE POLICY "Users can delete own saved jobs"
-  ON public.saved_jobs FOR DELETE
-  USING (auth.uid() = user_id);
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'saved_jobs' AND policyname = 'Users can delete own saved jobs'
+  ) THEN
+    CREATE POLICY "Users can delete own saved jobs"
+      ON public.saved_jobs FOR DELETE
+      USING (auth.uid() = user_id);
+  END IF;
+END $$;
 
 DROP TRIGGER IF EXISTS tr_saved_jobs_updated_at ON public.saved_jobs;
 CREATE TRIGGER tr_saved_jobs_updated_at
@@ -410,38 +505,57 @@ CREATE INDEX IF NOT EXISTS idx_cover_letters_app ON public.cover_letters(applica
 
 ALTER TABLE public.cover_letters ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Users can view own cover letters"
-  ON public.cover_letters FOR SELECT
-  USING (auth.uid() = user_id);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'cover_letters' AND policyname = 'Users can view own cover letters'
+  ) THEN
+    CREATE POLICY "Users can view own cover letters"
+      ON public.cover_letters FOR SELECT
+      USING (auth.uid() = user_id);
+  END IF;
 
-CREATE POLICY "Users can insert own cover letters"
-  ON public.cover_letters FOR INSERT
-  WITH CHECK (
-    auth.uid() = user_id
-    AND (
-      application_id IS NULL OR EXISTS (
-        SELECT 1 FROM public.applications a
-        WHERE a.id = application_id AND a.user_id = auth.uid()
-      )
-    )
-  );
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'cover_letters' AND policyname = 'Users can insert own cover letters'
+  ) THEN
+    CREATE POLICY "Users can insert own cover letters"
+      ON public.cover_letters FOR INSERT
+      WITH CHECK (
+        auth.uid() = user_id
+        AND (
+          application_id IS NULL OR EXISTS (
+            SELECT 1 FROM public.applications a
+            WHERE a.id = application_id AND a.user_id = auth.uid()
+          )
+        )
+      );
+  END IF;
 
-CREATE POLICY "Users can update own cover letters"
-  ON public.cover_letters FOR UPDATE
-  USING (auth.uid() = user_id)
-  WITH CHECK (
-    auth.uid() = user_id
-    AND (
-      application_id IS NULL OR EXISTS (
-        SELECT 1 FROM public.applications a
-        WHERE a.id = application_id AND a.user_id = auth.uid()
-      )
-    )
-  );
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'cover_letters' AND policyname = 'Users can update own cover letters'
+  ) THEN
+    CREATE POLICY "Users can update own cover letters"
+      ON public.cover_letters FOR UPDATE
+      USING (auth.uid() = user_id)
+      WITH CHECK (
+        auth.uid() = user_id
+        AND (
+          application_id IS NULL OR EXISTS (
+            SELECT 1 FROM public.applications a
+            WHERE a.id = application_id AND a.user_id = auth.uid()
+          )
+        )
+      );
+  END IF;
 
-CREATE POLICY "Users can delete own cover letters"
-  ON public.cover_letters FOR DELETE
-  USING (auth.uid() = user_id);
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'cover_letters' AND policyname = 'Users can delete own cover letters'
+  ) THEN
+    CREATE POLICY "Users can delete own cover letters"
+      ON public.cover_letters FOR DELETE
+      USING (auth.uid() = user_id);
+  END IF;
+END $$;
 
 DROP TRIGGER IF EXISTS tr_cover_letters_updated_at ON public.cover_letters;
 CREATE TRIGGER tr_cover_letters_updated_at
@@ -470,22 +584,41 @@ CREATE INDEX IF NOT EXISTS idx_job_alerts_user_status ON public.job_alerts(user_
 
 ALTER TABLE public.job_alerts ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Users can view own job alerts"
-  ON public.job_alerts FOR SELECT
-  USING (auth.uid() = user_id);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'job_alerts' AND policyname = 'Users can view own job alerts'
+  ) THEN
+    CREATE POLICY "Users can view own job alerts"
+      ON public.job_alerts FOR SELECT
+      USING (auth.uid() = user_id);
+  END IF;
 
-CREATE POLICY "Users can insert own job alerts"
-  ON public.job_alerts FOR INSERT
-  WITH CHECK (auth.uid() = user_id);
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'job_alerts' AND policyname = 'Users can insert own job alerts'
+  ) THEN
+    CREATE POLICY "Users can insert own job alerts"
+      ON public.job_alerts FOR INSERT
+      WITH CHECK (auth.uid() = user_id);
+  END IF;
 
-CREATE POLICY "Users can update own job alerts"
-  ON public.job_alerts FOR UPDATE
-  USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'job_alerts' AND policyname = 'Users can update own job alerts'
+  ) THEN
+    CREATE POLICY "Users can update own job alerts"
+      ON public.job_alerts FOR UPDATE
+      USING (auth.uid() = user_id)
+      WITH CHECK (auth.uid() = user_id);
+  END IF;
 
-CREATE POLICY "Users can delete own job alerts"
-  ON public.job_alerts FOR DELETE
-  USING (auth.uid() = user_id);
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'job_alerts' AND policyname = 'Users can delete own job alerts'
+  ) THEN
+    CREATE POLICY "Users can delete own job alerts"
+      ON public.job_alerts FOR DELETE
+      USING (auth.uid() = user_id);
+  END IF;
+END $$;
 
 DROP TRIGGER IF EXISTS tr_job_alerts_updated_at ON public.job_alerts;
 CREATE TRIGGER tr_job_alerts_updated_at
@@ -510,22 +643,41 @@ CREATE INDEX IF NOT EXISTS idx_prep_user_key ON public.interview_prep_checklists
 
 ALTER TABLE public.interview_prep_checklists ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Users can view own prep checklists"
-  ON public.interview_prep_checklists FOR SELECT
-  USING (auth.uid() = user_id);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'interview_prep_checklists' AND policyname = 'Users can view own prep checklists'
+  ) THEN
+    CREATE POLICY "Users can view own prep checklists"
+      ON public.interview_prep_checklists FOR SELECT
+      USING (auth.uid() = user_id);
+  END IF;
 
-CREATE POLICY "Users can insert own prep checklists"
-  ON public.interview_prep_checklists FOR INSERT
-  WITH CHECK (auth.uid() = user_id);
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'interview_prep_checklists' AND policyname = 'Users can insert own prep checklists'
+  ) THEN
+    CREATE POLICY "Users can insert own prep checklists"
+      ON public.interview_prep_checklists FOR INSERT
+      WITH CHECK (auth.uid() = user_id);
+  END IF;
 
-CREATE POLICY "Users can update own prep checklists"
-  ON public.interview_prep_checklists FOR UPDATE
-  USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'interview_prep_checklists' AND policyname = 'Users can update own prep checklists'
+  ) THEN
+    CREATE POLICY "Users can update own prep checklists"
+      ON public.interview_prep_checklists FOR UPDATE
+      USING (auth.uid() = user_id)
+      WITH CHECK (auth.uid() = user_id);
+  END IF;
 
-CREATE POLICY "Users can delete own prep checklists"
-  ON public.interview_prep_checklists FOR DELETE
-  USING (auth.uid() = user_id);
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'interview_prep_checklists' AND policyname = 'Users can delete own prep checklists'
+  ) THEN
+    CREATE POLICY "Users can delete own prep checklists"
+      ON public.interview_prep_checklists FOR DELETE
+      USING (auth.uid() = user_id);
+  END IF;
+END $$;
 
 DROP TRIGGER IF EXISTS tr_prep_updated_at ON public.interview_prep_checklists;
 CREATE TRIGGER tr_prep_updated_at
