@@ -1,3 +1,5 @@
+<a href="https://trendshift.io/repositories/24387?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-24387" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/24387" alt="Panniantong%2FAgent-Reach | Trendshift" width="250" height="55"/></a>
+
 # JobTrack 💼
 
 > **Track applications. Stay organized. Get hired.**
